@@ -21,7 +21,7 @@ header {
   background-color: black;
   color: #fff;
   font-size: 1.2rem;
-  padding-left: 2rem;
+  justify-content: center;
 }
 
 nav {
@@ -36,16 +36,20 @@ nav a {
   color: #fff;
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
-  transition: background-color 0.3s;
 }
 
 nav a:hover {
   background-color: #333;
+  height: 30px;
+  padding-top: 0.5px;
 }
 
 nav a.router-link-active {
-  background-color: #387250;
+  background-color: #ff2600;
+  height: 30px;
+  padding-top: 2px;
 }
+
 
 main {
   padding: 2rem;

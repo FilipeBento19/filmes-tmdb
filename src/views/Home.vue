@@ -1,8 +1,7 @@
 
 <template>
   <div>
-    <h1>Bem-vindo ao TMDB Explorer! 🎬</h1>
-    <p>Use o menu acima para navegar entre Filmes e Programas de TV.</p>
+    <h1>HOME</h1>
   </div>
 </template>
 

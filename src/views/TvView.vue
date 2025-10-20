@@ -116,6 +116,7 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
+  justify-content: space-evenly
 }
 
 .movie-card {
