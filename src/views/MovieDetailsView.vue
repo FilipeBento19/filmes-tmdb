@@ -80,7 +80,7 @@ onMounted(async () => {
 
 .tagline {
   font-style: italic;
-  color: #666;
+  color: #243a69;
   margin-bottom: 1rem;
 }
 
@@ -98,7 +98,7 @@ onMounted(async () => {
 }
 
 .company {
-  background: #f5f5f5;
+  background: #f4f4f2;
   padding: 1rem;
   border-radius: 0.5rem;
   min-width: 100px;

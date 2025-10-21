@@ -18,10 +18,10 @@
 header {
   height: 3rem;
   display: flex;
-  background-color: black;
-  color: #fff;
+  background-color: #243a69;
+  color: #f4f4f2;
   font-size: 1.2rem;
-  justify-content: center;
+  padding-left: 10px;
 }
 
 nav {
@@ -33,19 +33,19 @@ nav {
 
 nav a {
   text-decoration: none;
-  color: #fff;
+  color: #f4f4f2;
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
 }
 
 nav a:hover {
-  background-color: #333;
+  background-color: #5b88a5;
   height: 30px;
   padding-top: 0.5px;
 }
 
 nav a.router-link-active {
-  background-color: #ff2600;
+  background-color: #5b88a5;
   height: 30px;
   padding-top: 2px;
 }
