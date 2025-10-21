@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import Loading from 'vue-loading-overlay';
 import api from '@/plugins/axios';
 import { useGenreStore } from '@/stores/genre';
 
+const router = useRouter();
 const genreStore = useGenreStore();
 
 const tvShows = ref([]);
@@ -25,6 +27,10 @@ const listTvShows = async (genreId) => {
   } finally {
     isLoading.value = false;
   }
+};
+
+const goToTvDetails = (id) => {
+  router.push({ name: 'TvDetail', params: { id } });
 };
 
 const formatDate = (date) => {
@@ -58,7 +64,13 @@ onMounted(async () => {
     <loading v-model:active="isLoading" is-full-page />
 
     <div class="movie-list">
-      <div v-for="show in tvShows" :key="show.id" class="movie-card">
+      <div
+        v-for="show in tvShows"
+        :key="show.id"
+        class="movie-card"
+        @click="goToTvDetails(show.id)"
+        style="cursor: pointer"
+      >
         <img
           :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`"
           :alt="show.name"
@@ -70,7 +82,7 @@ onMounted(async () => {
             <span
               v-for="genre_id in show.genre_ids"
               :key="genre_id"
-              @click="listTvShows(genre_id)"
+              @click.stop="listTvShows(genre_id)"
               :class="{ active: genre_id === genreStore.currentGenreId }"
             >
               {{ genreStore.getGenreName(genre_id) }}
@@ -94,7 +106,7 @@ onMounted(async () => {
 }
 
 .genre-item {
-  background-color: #243a69;
+  background-color: #5d6424;
   border-radius: 1rem;
   padding: 0.5rem 1rem;
   color: #fff;
@@ -102,12 +114,12 @@ onMounted(async () => {
 
 .genre-item:hover {
   cursor: pointer;
-  background-color: #5b88a5;
-  box-shadow: 0 0 0.5rem #243a69;
+  background-color: #7d8a2e;
+  box-shadow: 0 0 0.5rem #5d6424;
 }
 
 .genre-item.active {
-  background-color: #5b88a5;
+  background-color: #abc322;
   color: #000;
   font-weight: bolder;
 }
@@ -116,7 +128,7 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  justify-content: space-evenly
+  justify-content: space-evenly;
 }
 
 .movie-card {
@@ -125,6 +137,11 @@ onMounted(async () => {
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 0 0.5rem #000;
+  transition: transform 0.2s ease;
+}
+
+.movie-card:hover {
+  transform: scale(1.03);
 }
 
 .movie-card img {
@@ -155,7 +172,7 @@ onMounted(async () => {
 }
 
 .movie-genres span {
-  background-color: #5b88a5;
+  background-color: #748708;
   border-radius: 0.5rem;
   padding: 0.2rem 0.5rem;
   color: #fff;
@@ -165,13 +182,13 @@ onMounted(async () => {
 
 .movie-genres span:hover {
   cursor: pointer;
-  background-color: #243a69;
-  box-shadow: 0 0 0.5rem #5b88a5;
+  background-color: #455a08;
+  box-shadow: 0 0 0.5rem #748708;
 }
 
 .movie-genres span.active {
-  background-color: #5b88a5;
-  color: #243a69;
+  background-color: #abc322;
+  color: #000;
   font-weight: bolder;
 }
 </style>
