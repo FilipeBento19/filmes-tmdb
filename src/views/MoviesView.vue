@@ -94,7 +94,7 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 2rem;
+  gap: 0.3rem;
   list-style: none;
   margin-bottom: 2rem;
   padding: 0;
@@ -133,6 +133,11 @@ onMounted(async () => {
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 0 0.5rem #000;
+  transition: transform 0.2s ease;
+}
+
+.movie-card:hover {
+  transform: scale(1.03);
 }
 
 .movie-card img {
@@ -142,10 +147,6 @@ onMounted(async () => {
   box-shadow: 0 0 0.5rem #000;
   cursor: pointer;
   transition: transform 0.3s;
-}
-
-.movie-card img:hover {
-  transform: scale(1.05);
 }
 
 .movie-details {

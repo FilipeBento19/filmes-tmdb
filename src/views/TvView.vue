@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import Loading from 'vue-loading-overlay';
 import api from '@/plugins/axios';
 import { useGenreStore } from '@/stores/genre';
 
+const router = useRouter();
 const genreStore = useGenreStore();
 
 const tvShows = ref([]);
@@ -27,6 +29,10 @@ const listTvShows = async (genreId) => {
   }
 };
 
+const goToTvDetails = (id) => {
+  router.push({ name: 'TvDetail', params: { id } });
+};
+
 const formatDate = (date) => {
   if (!date) return 'Data desconhecida';
   return new Date(date).toLocaleDateString('pt-BR');
@@ -41,7 +47,7 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1>Programas de TV</h1>
+    <h1 class="titulopage">Programas de TV</h1>
     
     <ul class="genre-list">
       <li
@@ -58,7 +64,13 @@ onMounted(async () => {
     <loading v-model:active="isLoading" is-full-page />
 
     <div class="movie-list">
-      <div v-for="show in tvShows" :key="show.id" class="movie-card">
+      <div
+        v-for="show in tvShows"
+        :key="show.id"
+        class="movie-card"
+        @click="goToTvDetails(show.id)"
+        style="cursor: pointer"
+      >
         <img
           :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`"
           :alt="show.name"
@@ -70,7 +82,7 @@ onMounted(async () => {
             <span
               v-for="genre_id in show.genre_ids"
               :key="genre_id"
-              @click="listTvShows(genre_id)"
+              @click.stop="listTvShows(genre_id)"
               :class="{ active: genre_id === genreStore.currentGenreId }"
             >
               {{ genreStore.getGenreName(genre_id) }}
@@ -87,10 +99,15 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 2rem;
+  gap: 0.3rem;
   list-style: none;
   margin-bottom: 2rem;
   padding: 0;
+}
+
+.titulopage {
+  padding-right: 100px;
+  text-align: center;
 }
 
 .genre-item {
@@ -116,7 +133,7 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  justify-content: space-evenly
+  justify-content: space-evenly;
 }
 
 .movie-card {
@@ -125,6 +142,11 @@ onMounted(async () => {
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 0 0.5rem #000;
+  transition: transform 0.2s ease;
+}
+
+.movie-card:hover {
+  transform: scale(1.03);
 }
 
 .movie-card img {

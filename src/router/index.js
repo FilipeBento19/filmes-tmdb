@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 const routes = [
+  
   {
     path: '/',
     name: 'Home',
@@ -16,11 +17,18 @@ const routes = [
     name: 'TV',
     component: () => import('../views/TvView.vue'),
   },
+  
   {
     path: '/movie/:movieId',
     name: 'MovieDetails',
     component: () => import('../views/MovieDetailsView.vue'),
     props: (route) => ({ movieId: Number(route.params.movieId) }),
+  },
+
+  {
+  path: '/tv/:id',
+  name: 'TvDetail',
+  component: () => import('../views/TvDetailsView.vue'),
   },
 ];
 
