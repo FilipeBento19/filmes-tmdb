@@ -1,0 +1,42 @@
+/* src/assets/theme/oscar.css */
+
+:root {
+  /* Cores do Tema Oscar */
+  --oscar-gold: #D4AF37;
+  --oscar-dark-gold: #B8941F;
+  --oscar-light-gold: #FFD700;
+  --oscar-black: #0a0a0a;
+  --oscar-dark-bg: #121212;
+  --oscar-card-bg: #1a1a1a;
+  --oscar-text: #f5f5f5;
+  --oscar-text-secondary: #b8b8b8;
+  --oscar-red-carpet: #8B0000;
+  
+  /* Gradientes */
+  --oscar-gradient: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+  --oscar-gradient-dark: linear-gradient(135deg, #B8941F 0%, #D4AF37 100%);
+  --oscar-shine: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 215, 0, 0.3) 50%, 
+    transparent 100%);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  background-color: var(--oscar-dark-bg);
+  color: var(--oscar-text);
+  overflow-x: hidden;
+}
+
+/* Fontes Elegantes */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+.montserrat {
+  font-family: 'Montserrat', sans-serif;
+}

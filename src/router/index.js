@@ -1,40 +1,68 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  
   {
     path: '/',
     name: 'Home',
-    component: () => import('../views/Home.vue'),
+    component: () => import('@/views/HomeView.vue'),
+    meta: {
+      title: 'Oscarizados - O Cinema dos Vencedores'
+    }
   },
   {
-    path: '/filmes',
-    name: 'Movies',
-    component: () => import('../views/MoviesView.vue'),
+    path: '/winners',
+    name: 'Winners',
+    component: () => import('@/views/WinnersView.vue'),
+    meta: {
+      title: 'Vencedores do Oscar - Oscarizados'
+    }
   },
   {
-    path: '/tv',
-    name: 'TV',
-    component: () => import('../views/TvView.vue'),
+    path: '/categories',
+    name: 'Categories',
+    component: () => import('@/views/CategoriesView.vue'),
+    meta: {
+      title: 'Categorias do Oscar - Oscarizados'
+    }
   },
-  
   {
-    path: '/movie/:movieId',
-    name: 'MovieDetails',
-    component: () => import('../views/MovieDetailsView.vue'),
-    props: (route) => ({ movieId: Number(route.params.movieId) }),
+    path: '/timeline',
+    name: 'Timeline',
+    component: () => import('@/views/TimeLine.vue'),
+    meta: {
+      title: 'Linha do Tempo - Oscarizados'
+    }
   },
-
+  // Rota 404
   {
-  path: '/tv/:id',
-  name: 'TvDetail',
-  component: () => import('../views/TvDetailsView.vue'),
-  },
-];
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+    meta: {
+      title: '404 - Página não encontrada'
+    }
+  }
+]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-});
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { 
+        top: 0,
+        behavior: 'smooth'
+      }
+    }
+  }
+})
 
-export default router;
+// Guard para atualizar título da página
+router.beforeEach((to, from, next) => {
+  document.title = to.meta.title || 'Oscarizados - O Cinema dos Vencedores'
+  next()
+})
+
+export default router
