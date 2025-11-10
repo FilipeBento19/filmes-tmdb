@@ -1,15 +1,16 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '@/plugins/axios'
+import { useOscar } from '@/composables/useOscar'
 
 const imageBase = 'https://image.tmdb.org/t/p/w500'
 
+const { fetchDecadeWinners } = useOscar()
+
 const decades = [
-  { id: '2020s', name: 'Anos 2020', years: '2020-2029', start: 2020, end: 2029 },
+  { id: '2020s', name: 'Anos 2020', years: '2020-2024', start: 2020, end: 2024 },
   { id: '2010s', name: 'Anos 2010', years: '2010-2019', start: 2010, end: 2019 },
   { id: '2000s', name: 'Anos 2000', years: '2000-2009', start: 2000, end: 2009 },
   { id: '1990s', name: 'Anos 1990', years: '1990-1999', start: 1990, end: 1999 },
-  { id: '1980s', name: 'Anos 1980', years: '1980-1989', start: 1980, end: 1989 }
 ]
 
 const selectedDecade = ref(decades[0])
@@ -19,22 +20,16 @@ const loading = ref(false)
 const loadDecadeMovies = async () => {
   loading.value = true
   try {
-    const movies = []
+    const winners = await fetchDecadeWinners(
+      selectedDecade.value.start, 
+      selectedDecade.value.end
+    )
     
-    // Carregar filmes dos anos da década selecionada
-    for (let year = selectedDecade.value.start; year <= selectedDecade.value.end; year++) {
-      if (year <= new Date().getFullYear()) {
-        const res = await api.get(`discover/movie?language=pt-BR&sort_by=popularity.desc&primary_release_year=${year}&vote_count.gte=500`)
-        if (res.data.results.length > 0) {
-          movies.push({
-            year,
-            movie: res.data.results[0] // Pegar o mais popular do ano
-          })
-        }
-      }
-    }
-    
-    timelineMovies.value = movies.reverse() // Mais recentes primeiro
+    // Filtrar apenas os que têm bestPictureDetails
+    timelineMovies.value = winners
+      .filter(w => w.bestPictureDetails)
+      .sort((a, b) => b.year - a.year) // Mais recentes primeiro
+      
   } catch (error) {
     console.error('Erro:', error)
   } finally {
@@ -70,7 +65,7 @@ onMounted(() => {
           </svg>
         </div>
         <h1>Linha do Tempo</h1>
-        <p>Uma jornada através das décadas de ouro do cinema</p>
+        <p>Uma jornada através das décadas de ouro do cinema premiado</p>
       </div>
     </section>
 
@@ -98,6 +93,11 @@ onMounted(() => {
       <p>Carregando linha do tempo...</p>
     </div>
 
+    <!-- No Results -->
+    <div v-else-if="timelineMovies.length === 0" class="no-results">
+      <p>Nenhum vencedor encontrado para esta década 😕</p>
+    </div>
+
     <!-- Timeline -->
     <section v-else class="timeline-section">
       <div class="container">
@@ -113,17 +113,26 @@ onMounted(() => {
             </div>
 
             <div class="timeline-content">
-              <div class="year-badge">{{ item.year }}</div>
+              <div class="year-badge">
+                {{ item.year }}
+                <span class="ceremony-badge">{{ item.ceremony }}ª Cerimônia</span>
+              </div>
               
               <div class="timeline-card">
                 <div class="card-poster">
                   <img
-                    v-if="item.movie.poster_path"
-                    :src="imageBase + item.movie.poster_path"
-                    :alt="item.movie.title"
+                    v-if="item.bestPictureDetails.poster_path"
+                    :src="imageBase + item.bestPictureDetails.poster_path"
+                    :alt="item.bestPictureDetails.title"
                     loading="lazy"
                   />
-                  <div v-else class="no-poster">🎬</div>
+                  <div v-else class="no-poster">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                  </div>
                 </div>
 
                 <div class="card-details">
@@ -139,25 +148,25 @@ onMounted(() => {
                         </linearGradient>
                       </defs>
                     </svg>
-                    <span>Destaque {{ item.year }}</span>
+                    <span>Melhor Filme</span>
                   </div>
 
-                  <h3>{{ item.movie.title }}</h3>
+                  <h3>{{ item.bestPictureDetails.title }}</h3>
 
                   <div class="movie-stats">
                     <span class="stat">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                       </svg>
-                      {{ item.movie.vote_average.toFixed(1) }}
+                      {{ item.bestPictureDetails.vote_average?.toFixed(1) || 'N/A' }}
                     </span>
                     <span class="stat">
-                      👁️ {{ item.movie.popularity.toFixed(0) }}
+                      📅 {{ new Date(item.bestPictureDetails.release_date).getFullYear() }}
                     </span>
                   </div>
 
                   <p class="movie-description">
-                    {{ item.movie.overview?.substring(0, 150) }}...
+                    {{ item.bestPictureDetails.overview?.substring(0, 150) || 'Vencedor do Oscar de Melhor Filme' }}...
                   </p>
 
                   <button class="details-btn">
@@ -298,6 +307,14 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
+/* No Results */
+.no-results {
+  text-align: center;
+  padding: 4rem 2rem;
+  font-size: 1.2rem;
+  color: var(--oscar-text-secondary);
+}
+
 /* Timeline Section */
 .timeline-section {
   padding: 5rem 0;
@@ -364,10 +381,20 @@ onMounted(() => {
   border-radius: 25px;
   font-size: 1.2rem;
   font-weight: 900;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
   letter-spacing: 0.05em;
+}
+
+.ceremony-badge {
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.3rem 0.7rem;
+  border-radius: 15px;
+  font-weight: 600;
 }
 
 .timeline-card {
@@ -411,7 +438,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
+  color: rgba(212, 175, 55, 0.3);
 }
 
 .card-details {
@@ -545,6 +572,11 @@ onMounted(() => {
 
   .card-details {
     padding: 1.5rem;
+  }
+
+  .year-badge {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
 </style>

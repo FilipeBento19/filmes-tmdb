@@ -20,23 +20,8 @@ onUnmounted(() => {
   <header :class="{ scrolled: isScrolled }" class="oscar-header">
     <div class="container">
       <div class="logo">
-        <svg class="oscar-statue" width="40" height="40" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L9 8H15L12 2Z" fill="url(#gold-gradient)"/>
-          <circle cx="12" cy="10" r="2" fill="url(#gold-gradient)"/>
-          <path d="M12 12L10 18H14L12 12Z" fill="url(#gold-gradient)"/>
-          <rect x="8" y="18" width="8" height="2" fill="url(#gold-gradient)"/>
-          <rect x="7" y="20" width="10" height="2" fill="url(#gold-gradient)"/>
-          <defs>
-            <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#FFD700"/>
-              <stop offset="100%" style="stop-color:#B8941F"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="logo-text">
-          <h1 class="branco">OSCARIZADOS</h1>
-          <span class="subtitle">O Cinema dos Vencedores</span>
-        </div>
+        <img class="logo" src="/LogoSite.png" alt="">
+        
       </div>
       
       <nav>
@@ -68,14 +53,6 @@ onUnmounted(() => {
         </router-link>
       </nav>
 
-      <div class="user-section">
-        <button class="search-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-        </button>
-      </div>
     </div>
   </header>
 </template>
@@ -102,17 +79,17 @@ onUnmounted(() => {
 .container {
   max-width: 1920px;
   margin: 0 auto;
-  padding: 1rem 3rem;
+  padding: 0rem 3rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 3rem;
+  gap: 2rem;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  height: 80px;
 }
 
 .oscar-statue {
@@ -191,29 +168,7 @@ nav {
   transform: translateX(-50%) scaleX(1);
 }
 
-.user-section {
-  display: flex;
-  align-items: center;
-}
 
-.search-btn {
-  background: transparent;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  color: var(--oscar-gold);
-  cursor: pointer;
-  padding: 0.6rem;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search-btn:hover {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: var(--oscar-gold);
-  transform: scale(1.05);
-}
 
 @media (max-width: 768px) {
   .container {

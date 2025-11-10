@@ -1,70 +1,52 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '@/plugins/axios'
+import { useOscar } from '@/composables/useOscar'
 
 const imageBase = 'https://image.tmdb.org/t/p/w500'
 const imageBannerBase = 'https://image.tmdb.org/t/p/original'
 
+const { 
+  fetchBestPictureWinners,
+  fetchCategoryWinners,
+  fetchYearWinners,
+  loading: oscarLoading
+} = useOscar()
+
 const featuredWinner = ref(null)
 const bestPictureWinners = ref([])
-const topRatedOscar = ref([])
-const recentWinners = ref([])
+const bestActorMovies = ref([])
+const animationWinners = ref([])
 const loading = ref(true)
 
-// Filmes premiados (usando filmes muito bem avaliados como proxy)
-const loadFeaturedWinner = async () => {
-  try {
-    // The Shawshank Redemption - um clássico vencedor
-    const res = await api.get('movie/278?language=pt-BR')
-    featuredWinner.value = res.data
-  } catch (error) {
-    console.error('Erro:', error)
-  }
-}
-
-const loadBestPictureWinners = async () => {
-  try {
-    // Filmes com alta avaliação e muitos votos (proxy para vencedores)
-    const res = await api.get('discover/movie?language=pt-BR&sort_by=vote_average.desc&vote_count.gte=10000&page=1')
-    bestPictureWinners.value = res.data.results.slice(0, 15)
-  } catch (error) {
-    console.error('Erro:', error)
-  }
-}
-
-const loadTopRated = async () => {
-  try {
-    const res = await api.get('movie/top_rated?language=pt-BR&page=1')
-    topRatedOscar.value = res.data.results.slice(0, 15)
-  } catch (error) {
-    console.error('Erro:', error)
-  }
-}
-
-const loadRecentWinners = async () => {
-  try {
-    // Filmes recentes bem avaliados
-    const currentYear = new Date().getFullYear()
-    const res = await api.get(`discover/movie?language=pt-BR&sort_by=vote_average.desc&vote_count.gte=1000&primary_release_year=${currentYear - 1}`)
-    recentWinners.value = res.data.results.slice(0, 15)
-  } catch (error) {
-    console.error('Erro:', error)
-  }
-}
-
-const loadAll = async () => {
+const loadAllContent = async () => {
   loading.value = true
-  await Promise.all([
-    loadFeaturedWinner(),
-    loadBestPictureWinners(),
-    loadTopRated(),
-    loadRecentWinners()
-  ])
-  loading.value = false
+  try {
+    // Carregar vencedores de Melhor Filme
+    const bestPictures = await fetchBestPictureWinners()
+    bestPictureWinners.value = bestPictures.slice(0, 15)
+    
+    // Filme em destaque (último vencedor)
+    if (bestPictures.length > 0) {
+      featuredWinner.value = bestPictures[0]
+    }
+
+    // Carregar vencedores de Melhor Animação
+    const animations = await fetchCategoryWinners('bestAnimatedFeature')
+    animationWinners.value = animations.slice(0, 15)
+
+    // Carregar filmes de vencedores de Melhor Ator
+    const actors = await fetchCategoryWinners('bestActor')
+    bestActorMovies.value = actors.slice(0, 15)
+
+  } catch (error) {
+    console.error('Erro ao carregar vencedores:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(() => {
-  loadAll()
+  loadAllContent()
 })
 </script>
 
@@ -87,12 +69,12 @@ onMounted(() => {
           </defs>
         </svg>
       </div>
-      <p class="loading-text">Carregando os vencedores...</p>
+      <p class="loading-text">Carregando os vencedores do Oscar...</p>
     </div>
 
     <!-- Content -->
     <div v-else>
-      <!-- Hero Banner -->
+      <!-- Hero Banner com vencedor em destaque -->
       <section class="hero-banner" v-if="featuredWinner">
         <div class="hero-background">
           <img 
@@ -109,7 +91,7 @@ onMounted(() => {
               <circle cx="12" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
               <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" stroke="currentColor" stroke-width="2"/>
             </svg>
-            <span>VENCEDOR DO OSCAR</span>
+            <span>OSCAR {{ featuredWinner.oscarData.oscarYear }} - MELHOR FILME</span>
           </div>
           
           <h1 class="hero-title">{{ featuredWinner.title }}</h1>
@@ -122,7 +104,7 @@ onMounted(() => {
               {{ featuredWinner.vote_average.toFixed(1) }}
             </span>
             <span class="year">{{ new Date(featuredWinner.release_date).getFullYear() }}</span>
-            <span class="awards">🏆 Múltiplas Premiações</span>
+            <span class="awards">🏆 Vencedor do Oscar</span>
           </div>
           
           <p class="hero-overview">{{ featuredWinner.overview }}</p>
