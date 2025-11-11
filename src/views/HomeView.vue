@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useOscar } from '@/composables/useOscar'
 
 const imageBase = 'https://image.tmdb.org/t/p/w500'
@@ -8,35 +8,111 @@ const imageBannerBase = 'https://image.tmdb.org/t/p/original'
 const { 
   fetchBestPictureWinners,
   fetchCategoryWinners,
-  fetchYearWinners,
-  loading: oscarLoading
+  oscarWinners
 } = useOscar()
 
 const featuredWinner = ref(null)
+const featuredMovies = ref([])
+const currentFeaturedIndex = ref(0)
 const bestPictureWinners = ref([])
 const bestActorMovies = ref([])
+const bestActressMovies = ref([])
 const animationWinners = ref([])
+const topRatedOscar = ref([])
+const recentWinners = ref([])
 const loading = ref(true)
+
+let autoplayInterval = null
+const isTransitioning = ref(false)
+
+const changeFeaturedMovie = (index) => {
+  if (isTransitioning.value || !featuredMovies.value.length) return
+  
+  isTransitioning.value = true
+  currentFeaturedIndex.value = index
+  featuredWinner.value = featuredMovies.value[index]
+  
+  setTimeout(() => {
+    isTransitioning.value = false
+  }, 500)
+}
+
+const nextFeatured = () => {
+  const nextIndex = (currentFeaturedIndex.value + 1) % featuredMovies.value.length
+  changeFeaturedMovie(nextIndex)
+}
+
+const prevFeatured = () => {
+  const prevIndex = currentFeaturedIndex.value === 0 
+    ? featuredMovies.value.length - 1 
+    : currentFeaturedIndex.value - 1
+  changeFeaturedMovie(prevIndex)
+}
+
+const startAutoplay = () => {
+  stopAutoplay()
+  autoplayInterval = setInterval(() => {
+    nextFeatured()
+  }, 7000)
+}
+
+const stopAutoplay = () => {
+  if (autoplayInterval) {
+    clearInterval(autoplayInterval)
+    autoplayInterval = null
+  }
+}
+
+const resetAutoplay = () => {
+  stopAutoplay()
+  startAutoplay()
+}
 
 const loadAllContent = async () => {
   loading.value = true
   try {
-    // Carregar vencedores de Melhor Filme
     const bestPictures = await fetchBestPictureWinners()
     bestPictureWinners.value = bestPictures.slice(0, 15)
     
-    // Filme em destaque (último vencedor)
-    if (bestPictures.length > 0) {
-      featuredWinner.value = bestPictures[0]
+    featuredMovies.value = bestPictures.slice(0, 5)
+    
+    if (featuredMovies.value.length > 0) {
+      featuredWinner.value = featuredMovies.value[0]
+      currentFeaturedIndex.value = 0
+      
+      setTimeout(() => {
+        startAutoplay()
+      }, 1000)
     }
 
-    // Carregar vencedores de Melhor Animação
     const animations = await fetchCategoryWinners('bestAnimatedFeature')
     animationWinners.value = animations.slice(0, 15)
 
-    // Carregar filmes de vencedores de Melhor Ator
     const actors = await fetchCategoryWinners('bestActor')
     bestActorMovies.value = actors.slice(0, 15)
+
+    const actresses = await fetchCategoryWinners('bestActress')
+    bestActressMovies.value = actresses.slice(0, 15)
+
+    const allWinners = [...bestPictures]
+    topRatedOscar.value = allWinners
+      .sort((a, b) => b.vote_average - a.vote_average)
+      .slice(0, 15)
+
+    const recentYears = [2024, 2023, 2022, 2021, 2020]
+    const recentMovies = []
+    
+    for (const year of recentYears) {
+      const yearData = oscarWinners[year]
+      if (yearData?.categories?.bestPicture?.winner) {
+        const movie = bestPictures.find(m => m.id === yearData.categories.bestPicture.winner.tmdbId)
+        if (movie) {
+          recentMovies.push(movie)
+        }
+      }
+    }
+    
+    recentWinners.value = recentMovies
 
   } catch (error) {
     console.error('Erro ao carregar vencedores:', error)
@@ -47,6 +123,10 @@ const loadAllContent = async () => {
 
 onMounted(() => {
   loadAllContent()
+})
+
+onUnmounted(() => {
+  stopAutoplay()
 })
 </script>
 
@@ -74,24 +154,46 @@ onMounted(() => {
 
     <!-- Content -->
     <div v-else>
-      <!-- Hero Banner com vencedor em destaque -->
+      <!-- Hero Banner Rotativo -->
       <section class="hero-banner" v-if="featuredWinner">
-        <div class="hero-background">
+        <div class="hero-background" :class="{ 'transitioning': isTransitioning }">
           <img 
+            v-if="featuredWinner.backdrop_path"
             :src="imageBannerBase + featuredWinner.backdrop_path" 
             :alt="featuredWinner.title"
+            :key="featuredWinner.id"
           />
           <div class="hero-gradient"></div>
           <div class="oscar-pattern"></div>
         </div>
+
+        <button 
+          class="hero-nav-btn hero-nav-prev" 
+          @click="prevFeatured(); resetAutoplay()"
+          aria-label="Filme anterior"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+
+        <button 
+          class="hero-nav-btn hero-nav-next" 
+          @click="nextFeatured(); resetAutoplay()"
+          aria-label="Próximo filme"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
         
-        <div class="hero-content">
+        <div class="hero-content" :class="{ 'transitioning': isTransitioning }">
           <div class="hero-badge">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
               <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" stroke="currentColor" stroke-width="2"/>
             </svg>
-            <span>OSCAR {{ featuredWinner.oscarData.oscarYear }} - MELHOR FILME</span>
+            <span>OSCAR {{ featuredWinner.oscarData?.oscarYear || '2024' }} - MELHOR FILME</span>
           </div>
           
           <h1 class="hero-title">{{ featuredWinner.title }}</h1>
@@ -101,13 +203,13 @@ onMounted(() => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
-              {{ featuredWinner.vote_average.toFixed(1) }}
+              {{ featuredWinner.vote_average?.toFixed(1) || 'N/A' }}
             </span>
             <span class="year">{{ new Date(featuredWinner.release_date).getFullYear() }}</span>
             <span class="awards">🏆 Vencedor do Oscar</span>
           </div>
           
-          <p class="hero-overview">{{ featuredWinner.overview }}</p>
+          <p class="hero-overview">{{ featuredWinner.overview || 'Vencedor do Oscar de Melhor Filme' }}</p>
           
           <div class="hero-buttons">
             <button class="btn-primary">
@@ -124,6 +226,18 @@ onMounted(() => {
             </button>
           </div>
         </div>
+
+        <div class="hero-indicators">
+          <button
+            v-for="(movie, index) in featuredMovies"
+            :key="movie.id"
+            @click="changeFeaturedMovie(index); resetAutoplay()"
+            :class="['indicator', { active: index === currentFeaturedIndex }]"
+            :aria-label="`Ver ${movie.title}`"
+          >
+            <div class="indicator-progress" v-if="index === currentFeaturedIndex"></div>
+          </button>
+        </div>
       </section>
 
       <!-- Estatísticas -->
@@ -137,7 +251,7 @@ onMounted(() => {
             </div>
             <div class="stat-card">
               <div class="stat-icon">🎬</div>
-              <div class="stat-number">500+</div>
+              <div class="stat-number">{{ bestPictureWinners.length }}</div>
               <div class="stat-label">Filmes Premiados</div>
             </div>
             <div class="stat-card">
@@ -147,17 +261,17 @@ onMounted(() => {
             </div>
             <div class="stat-card">
               <div class="stat-icon">🎭</div>
-              <div class="stat-number">1.000+</div>
-              <div class="stat-label">Indicações</div>
+              <div class="stat-number">{{ animationWinners.length }}</div>
+              <div class="stat-label">Animações Premiadas</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Carrosséis com tema Oscar -->
+      <!-- Carrosséis -->
       <div class="carousels-container">
-        <!-- Vencedores de Melhor Filme -->
-        <section class="oscar-carousel">
+        <!-- 1. Melhores Filmes -->
+        <section class="oscar-carousel" v-if="bestPictureWinners.length > 0">
           <div class="container">
             <div class="carousel-header">
               <h2 class="carousel-title">
@@ -179,10 +293,12 @@ onMounted(() => {
                   <div class="card-badge" v-if="index < 3">TOP {{ index + 1 }}</div>
                   <div class="card-image">
                     <img 
+                      v-if="movie.poster_path"
                       :src="imageBase + movie.poster_path" 
                       :alt="movie.title"
                       loading="lazy"
                     />
+                    <div v-else class="no-poster">🎬</div>
                     <div class="card-overlay">
                       <div class="oscar-icon">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
@@ -201,7 +317,7 @@ onMounted(() => {
                       <div class="card-info">
                         <h3>{{ movie.title }}</h3>
                         <div class="meta">
-                          <span class="rating">⭐ {{ movie.vote_average.toFixed(1) }}</span>
+                          <span class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</span>
                           <span class="year">{{ new Date(movie.release_date).getFullYear() }}</span>
                         </div>
                       </div>
@@ -213,28 +329,28 @@ onMounted(() => {
           </div>
         </section>
 
-        <!-- Mais Bem Avaliados -->
-        <section class="oscar-carousel">
+        <!-- 2. Aclamados pela Crítica -->
+        <section class="oscar-carousel" v-if="topRatedOscar.length > 0">
           <div class="container">
             <div class="carousel-header">
-              <h2 class="carousel-title">
-                ⭐ Aclamados pela Crítica
-              </h2>
+              <h2 class="carousel-title">⭐ Aclamados pela Crítica</h2>
             </div>
             
             <div class="carousel-scroll">
               <div class="oscar-cards">
                 <article 
                   v-for="movie in topRatedOscar" 
-                  :key="movie.id"
+                  :key="'top-' + movie.id"
                   class="oscar-card"
                 >
                   <div class="card-image">
                     <img 
+                      v-if="movie.poster_path"
                       :src="imageBase + movie.poster_path" 
                       :alt="movie.title"
                       loading="lazy"
                     />
+                    <div v-else class="no-poster">🎬</div>
                     <div class="card-overlay">
                       <div class="oscar-icon">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
@@ -244,7 +360,7 @@ onMounted(() => {
                       <div class="card-info">
                         <h3>{{ movie.title }}</h3>
                         <div class="meta">
-                          <span class="rating">⭐ {{ movie.vote_average.toFixed(1) }}</span>
+                          <span class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</span>
                           <span class="year">{{ new Date(movie.release_date).getFullYear() }}</span>
                         </div>
                       </div>
@@ -256,28 +372,28 @@ onMounted(() => {
           </div>
         </section>
 
-        <!-- Vencedores Recentes -->
-        <section class="oscar-carousel">
+        <!-- 3. Vencedores Recentes -->
+        <section class="oscar-carousel" v-if="recentWinners.length > 0">
           <div class="container">
             <div class="carousel-header">
-              <h2 class="carousel-title">
-                🎬 Vencedores Recentes
-              </h2>
+              <h2 class="carousel-title">🎬 Vencedores Recentes</h2>
             </div>
             
             <div class="carousel-scroll">
               <div class="oscar-cards">
                 <article 
                   v-for="movie in recentWinners" 
-                  :key="movie.id"
+                  :key="'recent-' + movie.id"
                   class="oscar-card"
                 >
                   <div class="card-image">
                     <img 
+                      v-if="movie.poster_path"
                       :src="imageBase + movie.poster_path" 
                       :alt="movie.title"
                       loading="lazy"
                     />
+                    <div v-else class="no-poster">🎬</div>
                     <div class="card-overlay">
                       <div class="oscar-icon">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -288,9 +404,141 @@ onMounted(() => {
                       <div class="card-info">
                         <h3>{{ movie.title }}</h3>
                         <div class="meta">
-                          <span class="rating">⭐ {{ movie.vote_average.toFixed(1) }}</span>
+                          <span class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</span>
                           <span class="year">{{ new Date(movie.release_date).getFullYear() }}</span>
                         </div>
+                        <p class="oscar-year">Oscar {{ movie.oscarData?.oscarYear }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Melhores Animações -->
+        <section class="oscar-carousel" v-if="animationWinners.length > 0">
+          <div class="container">
+            <div class="carousel-header">
+              <h2 class="carousel-title">🎨 Melhores Animações</h2>
+            </div>
+            
+            <div class="carousel-scroll">
+              <div class="oscar-cards">
+                <article 
+                  v-for="movie in animationWinners" 
+                  :key="'animation-' + movie.id"
+                  class="oscar-card"
+                >
+                  <div class="card-image">
+                    <img 
+                      v-if="movie.poster_path"
+                      :src="imageBase + movie.poster_path" 
+                      :alt="movie.title"
+                      loading="lazy"
+                    />
+                    <div v-else class="no-poster">🎨</div>
+                    <div class="card-overlay">
+                      <div class="oscar-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                      </div>
+                      <div class="card-info">
+                        <h3>{{ movie.title }}</h3>
+                        <div class="meta">
+                          <span class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</span>
+                          <span class="year">{{ new Date(movie.release_date).getFullYear() }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. Melhor Ator -->
+        <section class="oscar-carousel" v-if="bestActorMovies.length > 0">
+          <div class="container">
+            <div class="carousel-header">
+              <h2 class="carousel-title">🎭 Vencedores de Melhor Ator</h2>
+            </div>
+            
+            <div class="carousel-scroll">
+              <div class="oscar-cards">
+                <article 
+                  v-for="movie in bestActorMovies" 
+                  :key="'actor-' + movie.id"
+                  class="oscar-card"
+                >
+                  <div class="card-image">
+                    <img 
+                      v-if="movie.poster_path"
+                      :src="imageBase + movie.poster_path" 
+                      :alt="movie.title"
+                      loading="lazy"
+                    />
+                    <div v-else class="no-poster">🎭</div>
+                    <div class="card-overlay">
+                      <div class="oscar-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                      </div>
+                      <div class="card-info">
+                        <h3>{{ movie.title }}</h3>
+                        <div class="meta">
+                          <span class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</span>
+                          <span class="year">{{ new Date(movie.release_date).getFullYear() }}</span>
+                        </div>
+                        <p class="actor-name" v-if="movie.oscarData?.name">{{ movie.oscarData.name }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. Melhor Atriz -->
+        <section class="oscar-carousel" v-if="bestActressMovies.length > 0">
+          <div class="container">
+            <div class="carousel-header">
+              <h2 class="carousel-title">👑 Vencedoras de Melhor Atriz</h2>
+            </div>
+            
+            <div class="carousel-scroll">
+              <div class="oscar-cards">
+                <article 
+                  v-for="movie in bestActressMovies" 
+                  :key="'actress-' + movie.id"
+                  class="oscar-card"
+                >
+                  <div class="card-image">
+                    <img 
+                      v-if="movie.poster_path"
+                      :src="imageBase + movie.poster_path" 
+                      :alt="movie.title"
+                      loading="lazy"
+                    />
+                    <div v-else class="no-poster">👑</div>
+                    <div class="card-overlay">
+                      <div class="oscar-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                      </div>
+                      <div class="card-info">
+                        <h3>{{ movie.title }}</h3>
+                        <div class="meta">
+                          <span class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</span>
+                          <span class="year">{{ new Date(movie.release_date).getFullYear() }}</span>
+                        </div>
+                        <p class="actor-name" v-if="movie.oscarData?.name">{{ movie.oscarData.name }}</p>
                       </div>
                     </div>
                   </div>
@@ -347,12 +595,23 @@ onMounted(() => {
 .hero-background {
   position: absolute;
   inset: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.hero-background.transitioning {
+  opacity: 0;
 }
 
 .hero-background img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  animation: zoomIn 7s ease-out forwards;
+}
+
+@keyframes zoomIn {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
 }
 
 .hero-gradient {
@@ -390,9 +649,95 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 4rem;
-  max-width: 700px;
+  padding: 0 6rem;
+  max-width: 900px;
   z-index: 1;
+  transition: all 0.5s ease-in-out;
+}
+
+.hero-content.transitioning {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Navegação Hero */
+.hero-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--oscar-gold);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.hero-nav-btn:hover {
+  background: rgba(212, 175, 55, 0.4);
+  border-color: var(--oscar-gold);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.hero-nav-prev {
+  left: 1rem;
+}
+
+.hero-nav-next {
+  right: 1rem;
+}
+
+/* Indicadores */
+.hero-indicators {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75rem;
+  z-index: 100;
+}
+
+.indicator {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.indicator:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.indicator.active {
+  background: var(--oscar-gold);
+  width: 60px;
+}
+
+.indicator-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: progress 7s linear;
+}
+
+@keyframes progress {
+  from { width: 0%; }
+  to { width: 100%; }
 }
 
 .hero-badge {
@@ -525,6 +870,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
+  padding-top: 5rem;
 }
 
 .stat-card {
@@ -658,6 +1004,16 @@ onMounted(() => {
   transition: transform 0.3s ease;
 }
 
+.no-poster {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  background: var(--oscar-card-bg);
+}
+
 .oscar-card:hover .card-image img {
   transform: scale(1.1);
 }
@@ -718,6 +1074,16 @@ onMounted(() => {
   color: var(--oscar-text-secondary);
 }
 
+.oscar-year,
+.actor-name {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--oscar-gold);
+  margin-top: 0.5rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hero-title {
@@ -726,6 +1092,32 @@ onMounted(() => {
 
   .hero-content {
     padding: 0 2rem;
+  }
+
+  .hero-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .hero-nav-prev {
+    left: 1rem;
+  }
+
+  .hero-nav-next {
+    right: 1rem;
+  }
+
+  .hero-indicators {
+    bottom: 2rem;
+  }
+
+  .indicator {
+    width: 30px;
+    height: 3px;
+  }
+
+  .indicator.active {
+    width: 45px;
   }
 
   .stats-grid {
@@ -743,6 +1135,16 @@ onMounted(() => {
 
   .oscar-card {
     min-width: 160px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

@@ -342,6 +342,7 @@ onMounted(() => {
   gap: 1rem;
   overflow-x: auto;
   padding-bottom: 1rem;
+  padding-top: 1rem;
   scrollbar-width: thin;
   scrollbar-color: var(--oscar-gold) transparent;
 }

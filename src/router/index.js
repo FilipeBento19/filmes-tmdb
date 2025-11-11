@@ -6,7 +6,7 @@ const routes = [
     name: 'Home',
     component: () => import('@/views/HomeView.vue'),
     meta: {
-      title: 'Oscarizados - O Cinema dos Vencedores'
+      title: 'AwardWatch'
     }
   },
   {
@@ -14,7 +14,7 @@ const routes = [
     name: 'Winners',
     component: () => import('@/views/WinnersView.vue'),
     meta: {
-      title: 'Vencedores do Oscar - Oscarizados'
+      title: 'AwardWatch'
     }
   },
   {
@@ -22,7 +22,7 @@ const routes = [
     name: 'Categories',
     component: () => import('@/views/CategoriesView.vue'),
     meta: {
-      title: 'Categorias do Oscar - Oscarizados'
+      title: 'AwardWatch'
     }
   },
   {
@@ -30,7 +30,7 @@ const routes = [
     name: 'Timeline',
     component: () => import('@/views/TimeLine.vue'),
     meta: {
-      title: 'Linha do Tempo - Oscarizados'
+      title: 'AwardWatch'
     }
   },
   // Rota 404
