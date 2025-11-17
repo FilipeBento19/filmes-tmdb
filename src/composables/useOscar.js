@@ -2,14 +2,36 @@
 
 import { ref } from 'vue'
 import api from '@/plugins/axios'
-import { 
-  oscarWinners, 
-  getWinnersByCategory,
-  getWinnersByYear,
-  getAllBestPictureWinners,
-  getWinnersByDecade,
-  bestPictureTmdbIds
-} from '@/data/oscarWinners'
+import { oscarWinners } from '@/data/oscarWinners'
+
+// Mova as funções para dentro deste arquivo
+const getWinnersByCategory = (category) => {
+  return Object.values(oscarWinners)
+    .filter(yearData => yearData.categories[category]?.winner)
+    .map(yearData => yearData.categories[category].winner);
+}
+
+const getWinnersByYear = (year) => {
+  return oscarWinners[year];
+}
+
+const getAllBestPictureWinners = () => {
+  return Object.values(oscarWinners)
+    .filter(yearData => yearData.categories.bestPicture?.winner)
+    .map(yearData => yearData.categories.bestPicture.winner);
+}
+
+const getWinnersByDecade = (startYear, endYear) => {
+  return Object.values(oscarWinners)
+    .filter(yearData => yearData.year >= startYear && yearData.year <= endYear);
+}
+
+const bestPictureTmdbIds = Object.values(oscarWinners).reduce((acc, yearData) => {
+  if (yearData.categories.bestPicture?.winner?.tmdbId) {
+    acc[yearData.year] = yearData.categories.bestPicture.winner.tmdbId;
+  }
+  return acc;
+}, {});
 
 export function useOscar() {
   const loading = ref(false)
@@ -155,6 +177,8 @@ export function useOscar() {
 
     return enrichedWinners
   }
+
+  
 
   return {
     loading,
