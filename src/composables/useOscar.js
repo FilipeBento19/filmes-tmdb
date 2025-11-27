@@ -4,7 +4,10 @@ import { ref } from 'vue'
 import api from '@/plugins/axios'
 import { oscarWinners } from '@/data/oscarWinners'
 
-// Mova as funções para dentro deste arquivo
+// Definir quais categorias são de PESSOA vs FILME
+const PERSON_CATEGORIES = ['bestDirector', 'bestActor', 'bestActress', 'bestSupportingActor', 'bestSupportingActress']
+const MOVIE_CATEGORIES = ['bestPicture', 'bestAnimatedFeature', 'bestInternationalFilm', 'bestDocumentary']
+
 const getWinnersByCategory = (category) => {
   return Object.values(oscarWinners)
     .filter(yearData => yearData.categories[category]?.winner)
@@ -37,32 +40,30 @@ export function useOscar() {
   const loading = ref(false)
   const error = ref(null)
 
+  // Verificar se categoria é de pessoa
+  const isPersonCategory = (category) => {
+    return PERSON_CATEGORIES.includes(category)
+  }
+
+  // Verificar se categoria é de filme
+  const isMovieCategory = (category) => {
+    return MOVIE_CATEGORIES.includes(category)
+  }
+
   // Filtro de segurança para evitar conteúdo adulto
   const isValidMovie = (movie) => {
     if (!movie) return false
-    
-    // Verificar se é conteúdo adulto
     if (movie.adult === true) return false
-    
-    // Verificar se tem gêneros inadequados
-    const adultGenreIds = [10749] // Romance pode ter conteúdo inadequado às vezes
-    const hasAdultGenre = movie.genre_ids?.some(id => adultGenreIds.includes(id))
-    
-    // Verificar se tem poster (filmes sem poster podem ser suspeitos)
     if (!movie.poster_path) return false
-    
-    // Verificar se tem título
     if (!movie.title && !movie.name) return false
-    
     return true
   }
 
-  // Buscar detalhes de um vencedor do TMDB
+  // Buscar detalhes de um filme do TMDB
   const fetchMovieDetails = async (tmdbId) => {
     try {
       const response = await api.get(`movie/${tmdbId}?language=pt-BR&append_to_response=credits,videos`)
       
-      // FILTRO DE SEGURANÇA
       if (response.data.adult === true) {
         console.warn(`Filme ${tmdbId} bloqueado: conteúdo adulto`)
         return null
@@ -75,6 +76,17 @@ export function useOscar() {
     }
   }
 
+  // 🆕 Buscar detalhes de uma PESSOA do TMDB
+  const fetchPersonDetails = async (personId) => {
+    try {
+      const response = await api.get(`person/${personId}?language=pt-BR&append_to_response=images,movie_credits`)
+      return response.data
+    } catch (err) {
+      console.error('Erro ao buscar pessoa:', personId, err)
+      return null
+    }
+  }
+
   // Buscar múltiplos filmes vencedores
   const fetchWinnersDetails = async (tmdbIds) => {
     loading.value = true
@@ -83,8 +95,6 @@ export function useOscar() {
     try {
       const promises = tmdbIds.map(id => fetchMovieDetails(id))
       const results = await Promise.all(promises)
-      
-      // Filtrar resultados nulos e conteúdo adulto
       return results.filter(movie => movie !== null && isValidMovie(movie))
     } catch (err) {
       error.value = err.message
@@ -100,7 +110,6 @@ export function useOscar() {
     const tmdbIds = winners.map(w => w.tmdbId).filter(Boolean)
     const details = await fetchWinnersDetails(tmdbIds)
     
-    // Combinar dados do Oscar com dados do TMDB
     return details.map((movie) => {
       const oscarData = winners.find(w => w.tmdbId === movie.id)
       return {
@@ -125,33 +134,90 @@ export function useOscar() {
     }).filter(Boolean)
   }
 
-  // Buscar vencedores de um ano específico
+  // 🆕 Buscar vencedores de um ano - ATUALIZADO para separar filmes e pessoas
   const fetchYearWinners = async (year) => {
     const yearData = getWinnersByYear(year)
     
     if (!yearData) return null
 
-    const enrichedCategories = {}
+    const movieWinners = []  // Categorias de filme
+    const personWinners = [] // Categorias de pessoa
 
     // Processar cada categoria
     for (const [category, data] of Object.entries(yearData.categories)) {
-      if (data.winner?.tmdbId) {
-        const movieDetails = await fetchMovieDetails(data.winner.tmdbId)
-        
-        // Só adicionar se for válido
-        if (movieDetails && isValidMovie(movieDetails)) {
-          enrichedCategories[category] = {
-            ...data,
-            movieDetails
+      if (!data.winner) continue
+
+      if (isPersonCategory(category)) {
+        // É categoria de PESSOA - buscar detalhes da pessoa
+        if (data.winner.tmdbId) {
+          const personDetails = await fetchPersonDetails(data.winner.tmdbId)
+          
+          // Também buscar detalhes do filme relacionado
+          let movieDetails = null
+          // Tentar encontrar o filme pelo título na filmografia da pessoa
+          // ou buscar pelo ID se disponível
+          
+          if (personDetails) {
+            personWinners.push({
+              category,
+              categoryName: getCategoryName(category),
+              winner: data.winner,
+              personDetails,
+              movieTitle: data.winner.title // Filme pelo qual ganhou
+            })
+          }
+        } else {
+          // Sem tmdbId, criar dados básicos
+          personWinners.push({
+            category,
+            categoryName: getCategoryName(category),
+            winner: data.winner,
+            personDetails: null,
+            movieTitle: data.winner.title
+          })
+        }
+      } else {
+        // É categoria de FILME
+        if (data.winner.tmdbId) {
+          const movieDetails = await fetchMovieDetails(data.winner.tmdbId)
+          
+          if (movieDetails && isValidMovie(movieDetails)) {
+            movieWinners.push({
+              category,
+              categoryName: getCategoryName(category),
+              winner: data.winner,
+              movieDetails
+            })
           }
         }
       }
     }
 
     return {
-      ...yearData,
-      categories: enrichedCategories
+      year: yearData.year,
+      ceremony: yearData.ceremony,
+      date: yearData.date,
+      movieWinners,
+      personWinners
     }
+  }
+
+  // Helper para nome das categorias
+  const getCategoryName = (key) => {
+    const categoryMap = {
+      bestPicture: 'Melhor Filme',
+      bestActor: 'Melhor Ator',
+      bestActress: 'Melhor Atriz',
+      bestDirector: 'Melhor Diretor',
+      bestSupportingActor: 'Melhor Ator Coadjuvante',
+      bestSupportingActress: 'Melhor Atriz Coadjuvante',
+      bestAnimatedFeature: 'Melhor Animação',
+      bestInternationalFilm: 'Melhor Filme Internacional',
+      bestDocumentary: 'Melhor Documentário',
+      bestOriginalScreenplay: 'Melhor Roteiro Original',
+      bestAdaptedScreenplay: 'Melhor Roteiro Adaptado'
+    }
+    return categoryMap[key] || 'Vencedor'
   }
 
   // Buscar vencedores de uma década
@@ -165,7 +231,6 @@ export function useOscar() {
       if (bestPicture?.tmdbId) {
         const details = await fetchMovieDetails(bestPicture.tmdbId)
         
-        // Só adicionar se for válido
         if (details && isValidMovie(details)) {
           enrichedWinners.push({
             ...yearData,
@@ -178,13 +243,12 @@ export function useOscar() {
     return enrichedWinners
   }
 
-  
-
   return {
     loading,
     error,
     oscarWinners,
     fetchMovieDetails,
+    fetchPersonDetails,
     fetchWinnersDetails,
     fetchBestPictureWinners,
     fetchCategoryWinners,
@@ -194,6 +258,11 @@ export function useOscar() {
     getWinnersByYear,
     getAllBestPictureWinners,
     getWinnersByDecade,
-    bestPictureTmdbIds
+    getCategoryName,
+    isPersonCategory,
+    isMovieCategory,
+    bestPictureTmdbIds,
+    PERSON_CATEGORIES,
+    MOVIE_CATEGORIES
   }
 }

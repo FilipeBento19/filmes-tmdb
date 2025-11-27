@@ -1,93 +1,127 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import api from '@/plugins/axios'
+import { ref, onMounted, computed } from 'vue'
+import { useOscar } from '@/composables/useOscar'
 
 const imageBase = 'https://image.tmdb.org/t/p/w500'
 
+const { 
+  oscarWinners, 
+  fetchMovieDetails, 
+  fetchPersonDetails,
+  getCategoryName,
+  isPersonCategory 
+} = useOscar()
+
+// Mapeamento das categorias da UI para as chaves do oscarWinners
 const oscarCategories = [
   {
-    id: 'best-picture',
+    id: 'bestPicture',
     name: 'Melhor Filme',
     icon: '🎬',
     description: 'Os grandes vencedores da noite',
     color: '#FFD700',
-    genreFilter: null
+    type: 'movie'
   },
   {
-    id: 'best-actor',
-    name: 'Melhor Ator',
-    icon: '🎭',
-    description: 'Performances masculinas memoráveis',
-    color: '#B8941F',
-    genreFilter: null
-  },
-  {
-    id: 'best-actress',
-    name: 'Melhor Atriz',
-    icon: '👑',
-    description: 'Atuações femininas inesquecíveis',
-    color: '#D4AF37',
-    genreFilter: null
-  },
-  {
-    id: 'best-director',
+    id: 'bestDirector',
     name: 'Melhor Diretor',
     icon: '🎥',
     description: 'Mestres da sétima arte',
     color: '#C5A028',
-    genreFilter: null
+    type: 'person'
   },
   {
-    id: 'animation',
+    id: 'bestActor',
+    name: 'Melhor Ator',
+    icon: '🎭',
+    description: 'Performances masculinas memoráveis',
+    color: '#B8941F',
+    type: 'person'
+  },
+  {
+    id: 'bestActress',
+    name: 'Melhor Atriz',
+    icon: '👑',
+    description: 'Atuações femininas inesquecíveis',
+    color: '#D4AF37',
+    type: 'person'
+  },
+  {
+    id: 'bestAnimatedFeature',
     name: 'Melhor Animação',
     icon: '🎨',
     description: 'Magia da animação premiada',
     color: '#FFD700',
-    genreFilter: 16
-  },
-  {
-    id: 'documentary',
-    name: 'Melhor Documentário',
-    icon: '📚',
-    description: 'Histórias reais que impactam',
-    color: '#B8941F',
-    genreFilter: 99
-  },
-  {
-    id: 'foreign',
-    name: 'Melhor Filme Internacional',
-    icon: '🌍',
-    description: 'Cinema mundial premiado',
-    color: '#D4AF37',
-    genreFilter: null
-  },
-  {
-    id: 'screenplay',
-    name: 'Melhor Roteiro',
-    icon: '📝',
-    description: 'Histórias brilhantemente escritas',
-    color: '#C5A028',
-    genreFilter: null
+    type: 'movie'
   }
 ]
 
 const selectedCategory = ref(oscarCategories[0])
-const categoryMovies = ref([])
+const categoryWinners = ref([])
 const loading = ref(false)
 
-const loadCategoryMovies = async () => {
+// Buscar vencedores de uma categoria específica ao longo dos anos
+const loadCategoryWinners = async () => {
   loading.value = true
+  categoryWinners.value = []
+
   try {
-    let url = 'discover/movie?language=pt-BR&sort_by=vote_average.desc&vote_count.gte=2000'
-    
-    if (selectedCategory.value.genreFilter) {
-      url += `&with_genres=${selectedCategory.value.genreFilter}`
+    const categoryKey = selectedCategory.value.id
+    const isPersonCat = selectedCategory.value.type === 'person'
+    const winners = []
+
+    // Percorrer todos os anos do oscarWinners
+    const years = Object.keys(oscarWinners).map(Number).sort((a, b) => b - a)
+
+    for (const year of years) {
+      const yearData = oscarWinners[year]
+      const categoryData = yearData.categories[categoryKey]
+
+      if (!categoryData?.winner) continue
+
+      const winner = categoryData.winner
+
+      // Pular se não tem tmdbId válido
+      if (!winner.tmdbId || winner.tmdbId === 0) continue
+
+      if (isPersonCat) {
+        // Buscar detalhes da pessoa
+        const personDetails = await fetchPersonDetails(winner.tmdbId)
+        
+        if (personDetails) {
+          winners.push({
+            id: `${year}-${categoryKey}-${winner.tmdbId}`,
+            year: year,
+            ceremony: yearData.ceremony,
+            winner: winner,
+            personDetails: personDetails,
+            movieTitle: winner.title,
+            type: 'person'
+          })
+        }
+      } else {
+        // Buscar detalhes do filme
+        const movieDetails = await fetchMovieDetails(winner.tmdbId)
+        
+        if (movieDetails) {
+          winners.push({
+            id: `${year}-${categoryKey}-${winner.tmdbId}`,
+            year: year,
+            ceremony: yearData.ceremony,
+            winner: winner,
+            movieDetails: movieDetails,
+            type: 'movie'
+          })
+        }
+      }
+
+      // Limitar a 12 resultados para não sobrecarregar
+      if (winners.length >= 12) break
     }
-    
-    const res = await api.get(url)
-    categoryMovies.value = res.data.results.slice(0, 12)
+
+    categoryWinners.value = winners
   } catch (error) {
-    console.error('Erro:', error)
+    console.error('Erro ao carregar vencedores da categoria:', error)
   } finally {
     loading.value = false
   }
@@ -95,11 +129,25 @@ const loadCategoryMovies = async () => {
 
 const selectCategory = (category) => {
   selectedCategory.value = category
-  loadCategoryMovies()
+  loadCategoryWinners()
 }
 
+// Estatísticas da categoria
+const categoryStats = computed(() => {
+  const categoryKey = selectedCategory.value.id
+  let total = 0
+
+  Object.values(oscarWinners).forEach(yearData => {
+    if (yearData.categories[categoryKey]?.winner?.tmdbId) {
+      total++
+    }
+  })
+
+  return { total }
+})
+
 onMounted(() => {
-  loadCategoryMovies()
+  loadCategoryWinners()
 })
 </script>
 
@@ -153,14 +201,8 @@ onMounted(() => {
               {{ selectedCategory.icon }}
               {{ selectedCategory.name }}
             </span>
-            <h2>Vencedores e Indicados</h2>
+            <h2>Vencedores ao Longo dos Anos</h2>
             <p>{{ selectedCategory.description }}</p>
-          </div>
-          <div class="header-stats">
-            <div class="stat">
-              <span class="stat-number">{{ categoryMovies.length }}</span>
-              <span class="stat-label">Filmes</span>
-            </div>
           </div>
         </div>
       </div>
@@ -169,37 +211,43 @@ onMounted(() => {
     <!-- Loading -->
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
-      <p>Carregando vencedores...</p>
+      <p>Carregando vencedores de {{ selectedCategory.name }}...</p>
     </div>
 
-    <!-- Movies Grid -->
+    <!-- Winners Grid -->
     <section v-else class="movies-section">
       <div class="container">
-        <div class="movies-grid">
+        
+        <!-- Sem vencedores -->
+        <div v-if="categoryWinners.length === 0" class="no-winners">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="7"/>
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+          </svg>
+          <h3>Nenhum vencedor encontrado</h3>
+          <p>Não temos dados completos para esta categoria ainda.</p>
+        </div>
+
+        <!-- Grid de Filmes -->
+        <div v-else-if="selectedCategory.type === 'movie'" class="movies-grid">
           <article
-            v-for="(movie, index) in categoryMovies"
-            :key="movie.id"
+            v-for="(item, index) in categoryWinners"
+            :key="item.id"
             class="movie-card"
           >
+            <!-- Badge de ranking para os 3 primeiros -->
             <div class="award-number" v-if="index < 3">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L9 8H15L12 2Z" fill="url(#gold)"/>
-                <circle cx="12" cy="10" r="2" fill="url(#gold)"/>
-                <path d="M12 12L10 18H14L12 12Z" fill="url(#gold)"/>
-                <defs>
-                  <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#FFD700"/>
-                    <stop offset="100%" style="stop-color:#B8941F"/>
-                  </linearGradient>
-                </defs>
+              <span class="rank">#{{ index + 1 }}</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
             </div>
 
             <div class="movie-poster">
               <img
-                v-if="movie.poster_path"
-                :src="imageBase + movie.poster_path"
-                :alt="movie.title"
+                v-if="item.movieDetails?.poster_path"
+                :src="imageBase + item.movieDetails.poster_path"
+                :alt="item.movieDetails.title"
                 loading="lazy"
               />
               <div v-else class="no-poster">
@@ -217,30 +265,103 @@ onMounted(() => {
                   </svg>
                 </button>
               </div>
+
+              <!-- Ano do Oscar -->
+              <div class="year-badge">
+                🏆 {{ item.year }}
+              </div>
             </div>
 
             <div class="movie-info">
-              <h3>{{ movie.title }}</h3>
+              <h3>{{ item.movieDetails?.title || item.winner.title }}</h3>
               
               <div class="movie-meta">
-                <span class="rating">
-                  ⭐ {{ movie.vote_average.toFixed(1) }}
+                <span class="rating" v-if="item.movieDetails?.vote_average">
+                  ⭐ {{ item.movieDetails.vote_average.toFixed(1) }}
                 </span>
-                <span class="year">
-                  {{ new Date(movie.release_date).getFullYear() }}
+                <span class="release-year" v-if="item.movieDetails?.release_date">
+                  {{ new Date(item.movieDetails.release_date).getFullYear() }}
                 </span>
               </div>
 
-              <p class="movie-description">
-                {{ movie.overview?.substring(0, 100) }}...
+              <p class="movie-description" v-if="item.movieDetails?.overview">
+                {{ item.movieDetails.overview.substring(0, 100) }}...
               </p>
 
               <div class="award-info">
-                <span class="award-badge">🏆 Vencedor</span>
+                <span class="award-badge">🏆 Oscar {{ item.year }}</span>
+                <span class="ceremony-badge">{{ item.ceremony }}ª Cerimônia</span>
               </div>
             </div>
           </article>
         </div>
+
+        <!-- Grid de Pessoas -->
+        <div v-else class="persons-grid">
+          <article
+            v-for="(item, index) in categoryWinners"
+            :key="item.id"
+            class="person-card"
+          >
+            <!-- Badge de ranking para os 3 primeiros -->
+            <div class="award-number" v-if="index < 3">
+              <span class="rank">#{{ index + 1 }}</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            </div>
+
+            <div class="person-photo">
+              <img
+                v-if="item.personDetails?.profile_path"
+                :src="imageBase + item.personDetails.profile_path"
+                :alt="item.winner.name"
+                loading="lazy"
+              />
+              <div v-else class="no-photo">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+
+              <!-- Ano do Oscar -->
+              <div class="year-badge">
+                🏆 {{ item.year }}
+              </div>
+            </div>
+
+            <div class="person-info">
+              <h3>{{ item.winner.name }}</h3>
+              
+              <p class="movie-reference">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                  <line x1="7" y1="2" x2="7" y2="22"/>
+                  <line x1="17" y1="2" x2="17" y2="22"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                </svg>
+                {{ item.movieTitle }}
+              </p>
+
+              <!-- Info da pessoa -->
+              <div class="person-details" v-if="item.personDetails">
+                <span v-if="item.personDetails.birthday" class="detail-item">
+                  📅 {{ new Date(item.personDetails.birthday).toLocaleDateString('pt-BR') }}
+                </span>
+                <span v-if="item.personDetails.place_of_birth" class="detail-item">
+                  📍 {{ item.personDetails.place_of_birth.split(',')[0] }}
+                </span>
+              </div>
+
+              <div class="award-info">
+                <span class="award-badge">🏆 Oscar {{ item.year }}</span>
+                <span class="ceremony-badge">{{ item.ceremony }}ª Cerimônia</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
       </div>
     </section>
   </div>
@@ -304,7 +425,7 @@ onMounted(() => {
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
 }
 
@@ -354,14 +475,14 @@ onMounted(() => {
 }
 
 .category-card h3 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
   color: #fff;
 }
 
 .category-card p {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--oscar-text-secondary);
   font-family: 'Montserrat', sans-serif;
   font-weight: 300;
@@ -425,10 +546,6 @@ onMounted(() => {
   font-family: 'Montserrat', sans-serif;
 }
 
-.header-stats {
-  display: flex;
-  gap: 2rem;
-}
 
 .stat {
   text-align: center;
@@ -472,11 +589,35 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
+/* No Winners */
+.no-winners {
+  text-align: center;
+  padding: 5rem 2rem;
+  color: var(--oscar-text-secondary);
+}
+
+.no-winners svg {
+  opacity: 0.3;
+  margin-bottom: 2rem;
+}
+
+.no-winners h3 {
+  font-size: 1.8rem;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.no-winners p {
+  font-size: 1.1rem;
+  font-family: 'Montserrat', sans-serif;
+}
+
 /* Movies Section */
 .movies-section {
   padding: 4rem 0 6rem;
 }
 
+/* Movies Grid */
 .movies-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -503,7 +644,24 @@ onMounted(() => {
   top: 1rem;
   left: 1rem;
   z-index: 10;
-  filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.6));
+  background: var(--oscar-gradient);
+  color: var(--oscar-black);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 900;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.award-number .rank {
+  font-size: 1rem;
+}
+
+.award-number svg {
+  width: 18px;
+  height: 18px;
 }
 
 .movie-poster {
@@ -567,6 +725,20 @@ onMounted(() => {
   box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
 }
 
+.year-badge {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--oscar-gold);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
 .movie-info {
   padding: 1.5rem;
 }
@@ -593,7 +765,7 @@ onMounted(() => {
   font-weight: 700;
 }
 
-.year {
+.release-year {
   color: var(--oscar-text-secondary);
 }
 
@@ -609,6 +781,7 @@ onMounted(() => {
 .award-info {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .award-badge {
@@ -620,6 +793,130 @@ onMounted(() => {
   font-size: 0.75rem;
   font-weight: 700;
   font-family: 'Montserrat', sans-serif;
+}
+
+.ceremony-badge {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--oscar-text-secondary);
+  padding: 0.4rem 0.9rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Persons Grid */
+.persons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.person-card {
+  background: var(--oscar-card-bg);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  position: relative;
+}
+
+.person-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--oscar-gold);
+  box-shadow: 0 15px 50px rgba(212, 175, 55, 0.25);
+}
+
+.person-card .award-number {
+  top: 1rem;
+  left: 1rem;
+}
+
+.person-photo {
+  width: 160px;
+  min-height: 220px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+}
+
+.person-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.person-card:hover .person-photo img {
+  transform: scale(1.1);
+}
+
+.no-photo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(212, 175, 55, 0.3);
+}
+
+.person-photo .year-badge {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+}
+
+.person-info {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.person-info h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+  color: #fff;
+}
+
+.movie-reference {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--oscar-gold);
+  font-size: 0.95rem;
+  font-family: 'Montserrat', sans-serif;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.movie-reference svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.person-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.detail-item {
+  font-size: 0.8rem;
+  color: var(--oscar-text-secondary);
+  font-family: 'Montserrat', sans-serif;
+}
+
+.person-info .award-info {
+  margin-top: auto;
 }
 
 /* Responsive */
@@ -637,8 +934,24 @@ onMounted(() => {
   }
 
   .categories-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 1rem;
+  }
+
+  .category-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .category-icon {
+    font-size: 2.5rem;
+  }
+
+  .category-card h3 {
+    font-size: 0.95rem;
+  }
+
+  .category-card p {
+    font-size: 0.75rem;
   }
 
   .header-content {
@@ -653,6 +966,19 @@ onMounted(() => {
   .movies-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
+  }
+
+  .persons-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .person-card {
+    flex-direction: column;
+  }
+
+  .person-photo {
+    width: 100%;
+    height: 280px;
   }
 }
 </style>
