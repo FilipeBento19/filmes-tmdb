@@ -314,7 +314,7 @@ onMounted(() => {
                     </svg>
                   </div>
                   <div class="chip-info">
-                    <span class="chip-label">🎥 Melhor Diretor</span>
+                    <span class="chip-label">Melhor Diretor</span>
                     <span class="chip-name">{{ item.director.oscarData.name }}</span>
                     <span class="chip-movie">{{ item.director.movieTitle }}</span>
                   </div>
@@ -334,7 +334,7 @@ onMounted(() => {
                     </svg>
                   </div>
                   <div class="chip-info">
-                    <span class="chip-label">🎭 Melhor Ator</span>
+                    <span class="chip-label">Melhor Ator</span>
                     <span class="chip-name">{{ item.actor.oscarData.name }}</span>
                     <span class="chip-movie">{{ item.actor.movieTitle }}</span>
                   </div>
@@ -354,7 +354,7 @@ onMounted(() => {
                     </svg>
                   </div>
                   <div class="chip-info">
-                    <span class="chip-label">👑 Melhor Atriz</span>
+                    <span class="chip-label">Melhor Atriz</span>
                     <span class="chip-name">{{ item.actress.oscarData.name }}</span>
                     <span class="chip-movie">{{ item.actress.movieTitle }}</span>
                   </div>
@@ -373,7 +373,7 @@ onMounted(() => {
                     </svg>
                   </div>
                   <div class="chip-info">
-                    <span class="chip-label">🎨 Melhor Animação</span>
+                    <span class="chip-label">Melhor Animação</span>
                     <span class="chip-name">{{ item.animation.title }}</span>
                     <span class="chip-rating" v-if="item.animation.vote_average">
                       ⭐ {{ item.animation.vote_average.toFixed(1) }}

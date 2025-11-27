@@ -17,7 +17,7 @@ const oscarCategories = [
   {
     id: 'bestPicture',
     name: 'Melhor Filme',
-    icon: '🎬',
+    icon: '/imgs/clapperboard.png',
     description: 'Os grandes vencedores da noite',
     color: '#FFD700',
     type: 'movie'
@@ -25,7 +25,7 @@ const oscarCategories = [
   {
     id: 'bestDirector',
     name: 'Melhor Diretor',
-    icon: '🎥',
+    icon: '/imgs/theater.png',
     description: 'Mestres da sétima arte',
     color: '#C5A028',
     type: 'person'
@@ -33,7 +33,7 @@ const oscarCategories = [
   {
     id: 'bestActor',
     name: 'Melhor Ator',
-    icon: '🎭',
+    icon: '/imgs/star.png',
     description: 'Performances masculinas memoráveis',
     color: '#B8941F',
     type: 'person'
@@ -41,7 +41,7 @@ const oscarCategories = [
   {
     id: 'bestActress',
     name: 'Melhor Atriz',
-    icon: '👑',
+    icon: '/imgs/star.png',
     description: 'Atuações femininas inesquecíveis',
     color: '#D4AF37',
     type: 'person'
@@ -49,12 +49,13 @@ const oscarCategories = [
   {
     id: 'bestAnimatedFeature',
     name: 'Melhor Animação',
-    icon: '🎨',
+    icon: '/imgs/paint-palette.png',
     description: 'Magia da animação premiada',
     color: '#FFD700',
     type: 'movie'
   }
 ]
+
 
 const selectedCategory = ref(oscarCategories[0])
 const categoryWinners = ref([])
@@ -183,7 +184,8 @@ onMounted(() => {
             :class="['category-card', { active: selectedCategory.id === category.id }]"
             :style="{ '--category-color': category.color }"
           >
-            <div class="category-icon">{{ category.icon }}</div>
+            <div class="category-icon"><img :src="category.icon" :alt="category.name" class="category-icon" />
+</div>
             <h3>{{ category.name }}</h3>
             <p>{{ category.description }}</p>
             <div class="category-shine" v-if="selectedCategory.id === category.id"></div>
@@ -235,13 +237,6 @@ onMounted(() => {
             :key="item.id"
             class="movie-card"
           >
-            <!-- Badge de ranking para os 3 primeiros -->
-            <div class="award-number" v-if="index < 3">
-              <span class="rank">#{{ index + 1 }}</span>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-            </div>
 
             <div class="movie-poster">
               <img
@@ -303,13 +298,6 @@ onMounted(() => {
             :key="item.id"
             class="person-card"
           >
-            <!-- Badge de ranking para os 3 primeiros -->
-            <div class="award-number" v-if="index < 3">
-              <span class="rank">#{{ index + 1 }}</span>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-            </div>
 
             <div class="person-photo">
               <img
@@ -472,6 +460,8 @@ onMounted(() => {
   font-size: 3rem;
   margin-bottom: 1rem;
   display: block;
+  padding-left: 20px;
+  max-width: 120px;
 }
 
 .category-card h3 {
@@ -637,31 +627,6 @@ onMounted(() => {
   transform: translateY(-10px);
   border-color: var(--oscar-gold);
   box-shadow: 0 15px 50px rgba(212, 175, 55, 0.25);
-}
-
-.award-number {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 10;
-  background: var(--oscar-gradient);
-  color: var(--oscar-black);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 900;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-}
-
-.award-number .rank {
-  font-size: 1rem;
-}
-
-.award-number svg {
-  width: 18px;
-  height: 18px;
 }
 
 .movie-poster {

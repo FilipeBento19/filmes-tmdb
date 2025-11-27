@@ -56,81 +56,107 @@ const resetAutoplay = () => {
   startAutoplay()
 }
 
-// Carregar dados
 const loadData = async () => {
   loading.value = true
-  
+
   try {
-    const years = Object.keys(oscarWinners).map(Number).sort((a, b) => b - a)
+    const years = Object.keys(oscarWinners)
+      .map(Number)
+      .sort((a, b) => b - a)
+      .slice(0, 20)
+
     const allMovies = []
     const allAnimations = []
     const allDirectors = []
     const allActors = []
 
-    // Buscar vencedores dos últimos anos (limite: 20)
-    for (const year of years.slice(0, 20)) {
+    const requests = []
+
+    for (const year of years) {
       const yearData = oscarWinners[year]
-      
+
       // Melhor Filme
       const bestPicture = yearData.categories.bestPicture?.winner
-      if (bestPicture?.tmdbId && bestPicture.tmdbId !== 0) {
-        const movie = await fetchMovieDetails(bestPicture.tmdbId)
-        if (movie) {
-          allMovies.push({ ...movie, oscarYear: year, ceremony: yearData.ceremony })
-        }
+      if (bestPicture?.tmdbId) {
+        requests.push(
+          fetchMovieDetails(bestPicture.tmdbId).then(movie => {
+            if (movie) {
+              allMovies.push({
+                ...movie,
+                oscarYear: year,
+                ceremony: yearData.ceremony
+              })
+            }
+          })
+        )
       }
 
       // Animação
       const animation = yearData.categories.bestAnimatedFeature?.winner
-      if (animation?.tmdbId && animation.tmdbId !== 0) {
-        const movie = await fetchMovieDetails(animation.tmdbId)
-        if (movie) {
-          allAnimations.push({ ...movie, oscarYear: year })
-        }
+      if (animation?.tmdbId) {
+        requests.push(
+          fetchMovieDetails(animation.tmdbId).then(movie => {
+            if (movie) {
+              allAnimations.push({
+                ...movie,
+                oscarYear: year
+              })
+            }
+          })
+        )
       }
 
       // Diretor
       const director = yearData.categories.bestDirector?.winner
-      if (director?.tmdbId && director.tmdbId !== 0) {
-        const person = await fetchPersonDetails(director.tmdbId)
-        if (person) {
-          allDirectors.push({ 
-            ...person, 
-            oscarYear: year, 
-            oscarData: director,
-            movieTitle: director.title 
+      if (director?.tmdbId) {
+        requests.push(
+          fetchPersonDetails(director.tmdbId).then(person => {
+            if (person) {
+              allDirectors.push({
+                ...person,
+                oscarYear: year,
+                oscarData: director,
+                movieTitle: director.title
+              })
+            }
           })
-        }
+        )
       }
 
       // Ator
       const actor = yearData.categories.bestActor?.winner
-      if (actor?.tmdbId && actor.tmdbId !== 0) {
-        const person = await fetchPersonDetails(actor.tmdbId)
-        if (person) {
-          allActors.push({ 
-            ...person, 
-            oscarYear: year, 
-            oscarData: actor,
-            movieTitle: actor.title 
+      if (actor?.tmdbId) {
+        requests.push(
+          fetchPersonDetails(actor.tmdbId).then(person => {
+            if (person) {
+              allActors.push({
+                ...person,
+                oscarYear: year,
+                oscarData: actor,
+                movieTitle: actor.title
+              })
+            }
           })
-        }
+        )
       }
     }
 
-    // Preencher carrosséis
+    // AGORA roda tudo ao mesmo tempo
+    await Promise.all(requests)
+
     carousels.value = {
       bestPicture: allMovies.slice(0, 12),
-      topRated: [...allMovies].sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0)).slice(0, 12),
+      topRated: [...allMovies]
+        .sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0))
+        .slice(0, 12),
       recent: allMovies.slice(0, 6),
       animation: allAnimations.slice(0, 12),
       directors: allDirectors.slice(0, 12),
       actors: allActors.slice(0, 12)
     }
 
-    // Featured banner
     featuredMovies.value = allMovies.slice(0, 5)
-    
+
     if (featuredMovies.value.length > 0) {
       setTimeout(startAutoplay, 1000)
     }
@@ -141,6 +167,7 @@ const loadData = async () => {
     loading.value = false
   }
 }
+
 
 onMounted(loadData)
 onUnmounted(stopAutoplay)
@@ -205,32 +232,42 @@ onUnmounted(stopAutoplay)
       </section>
 
       <!-- Stats -->
-      <section class="stats">
-        <div class="container">
-          <div class="stats-grid">
-            <div class="stat">
-              <div class="icon">🏆</div>
-              <div class="num">{{ stats.ceremonies }}</div>
-              <div class="label">Edições</div>
-            </div>
-            <div class="stat">
-              <div class="icon">🎬</div>
-              <div class="num">{{ stats.bestPictures }}</div>
-              <div class="label">Melhores Filmes</div>
-            </div>
-            <div class="stat">
-              <div class="icon">⭐</div>
-              <div class="num">{{ stats.categories }}</div>
-              <div class="label">Categorias</div>
-            </div>
-            <div class="stat">
-              <div class="icon">🎨</div>
-              <div class="num">{{ stats.animations }}</div>
-              <div class="label">Animações</div>
-            </div>
-          </div>
+      <!-- Stats -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="icon">
+          <img src="/imgs/clapperboard.png" class="imgsicon" alt="Edições">
         </div>
-      </section>
+        <div class="num">{{ stats.ceremonies }}</div>
+        <div class="label">Edições</div>
+      </div>
+      <div class="stat">
+        <div class="icon">
+          <img src="/imgs/theater.png" class="imgsicon" alt="Melhores Filmes">
+        </div>
+        <div class="num">{{ stats.bestPictures }}</div>
+        <div class="label">Melhores Filmes</div>
+      </div>
+      <div class="stat">
+        <div class="icon">
+          <img src="/imgs/star.png" class="imgsicon" alt="Categorias">
+        </div>
+        <div class="num">{{ stats.categories }}</div>
+        <div class="label">Categorias</div>
+      </div>
+      <div class="stat">
+        <div class="icon">
+          <img src="/imgs/paint-palette.png" class="imgsicon" alt="Animações">
+        </div>
+        <div class="num">{{ stats.animations }}</div>
+        <div class="label">Animações</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       <!-- Carrosséis -->
       <div class="carousels">
@@ -238,10 +275,9 @@ onUnmounted(stopAutoplay)
           
           <!-- Melhores Filmes -->
           <section class="carousel" v-if="carousels.bestPicture.length">
-            <h2>🏆 Melhores Filmes de Todos os Tempos</h2>
+            <h2>Melhores Filmes de Todos os Tempos</h2>
             <div class="scroll">
               <article v-for="(movie, i) in carousels.bestPicture" :key="movie.id" class="card">
-                <span v-if="i < 3" class="top">TOP {{ i + 1 }}</span>
                 <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy"/>
                 <div v-else class="no-img">🎬</div>
                 <div class="info">
@@ -258,7 +294,7 @@ onUnmounted(stopAutoplay)
 
           <!-- Aclamados pela Crítica -->
           <section class="carousel" v-if="carousels.topRated.length">
-            <h2>⭐ Aclamados pela Crítica</h2>
+            <h2>Aclamados pela Crítica</h2>
             <div class="scroll">
               <article v-for="movie in carousels.topRated" :key="'top-' + movie.id" class="card">
                 <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy"/>
@@ -276,7 +312,7 @@ onUnmounted(stopAutoplay)
 
           <!-- Vencedores Recentes -->
           <section class="carousel" v-if="carousels.recent.length">
-            <h2>🎬 Vencedores Recentes</h2>
+            <h2>Vencedores Recentes</h2>
             <div class="scroll">
               <article v-for="movie in carousels.recent" :key="'recent-' + movie.id" class="card">
                 <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy"/>
@@ -294,7 +330,7 @@ onUnmounted(stopAutoplay)
 
           <!-- Animações -->
           <section class="carousel" v-if="carousels.animation.length">
-            <h2>🎨 Melhores Animações</h2>
+            <h2>Melhores Animações</h2>
             <div class="scroll">
               <article v-for="movie in carousels.animation" :key="'anim-' + movie.id" class="card">
                 <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy"/>
@@ -312,7 +348,7 @@ onUnmounted(stopAutoplay)
 
           <!-- Diretores -->
           <section class="carousel persons" v-if="carousels.directors.length">
-            <h2>🎥 Melhores Diretores</h2>
+            <h2>Melhores Diretores</h2>
             <div class="scroll">
               <article v-for="person in carousels.directors" :key="'dir-' + person.id" class="person-card">
                 <img v-if="person.profile_path" :src="imageBase + person.profile_path" :alt="person.oscarData.name" loading="lazy"/>
@@ -328,7 +364,7 @@ onUnmounted(stopAutoplay)
 
           <!-- Atores -->
           <section class="carousel persons" v-if="carousels.actors.length">
-            <h2>🎭 Melhores Atores</h2>
+            <h2>Melhores Atores</h2>
             <div class="scroll">
               <article v-for="person in carousels.actors" :key="'act-' + person.id" class="person-card">
                 <img v-if="person.profile_path" :src="imageBase + person.profile_path" :alt="person.oscarData.name" loading="lazy"/>
@@ -458,7 +494,7 @@ onUnmounted(stopAutoplay)
   border-radius: 50px;
   font-size: 0.75rem;
   font-weight: 700;
-  width: fit-content;
+  width: fit-content;max-w: 200px;
   margin-bottom: 1.5rem;
   font-family: 'Montserrat', sans-serif;
   backdrop-filter: blur(10px);
@@ -601,6 +637,11 @@ onUnmounted(stopAutoplay)
 .icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
+
+}
+
+.imgsicon{
+  max-width: 140px;
 }
 
 .num {
