@@ -2,6 +2,18 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useOscar } from '@/composables/useOscar'
 
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goToMovie = (movieId) => {
+  router.push({ name: 'movie', params: { id: movieId } })
+}
+
+const goToPerson = (personId) => {
+  router.push({ name: 'person', params: { id: personId } })
+}
+
 const imageBase = 'https://image.tmdb.org/t/p/w500'
 const imageBannerBase = 'https://image.tmdb.org/t/p/original'
 
@@ -277,8 +289,8 @@ onUnmounted(stopAutoplay)
           <section class="carousel" v-if="carousels.bestPicture.length">
             <h2>Melhores Filmes de Todos os Tempos</h2>
             <div class="scroll">
-              <article v-for="(movie, i) in carousels.bestPicture" :key="movie.id" class="card">
-                <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy"/>
+              <article v-for="movie in carousels.bestPicture" :key="movie.id" class="card" @click="goToMovie(movie.id)">
+                <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy" />
                 <div v-else class="no-img">🎬</div>
                 <div class="info">
                   <h3>{{ movie.title }}</h3>
@@ -296,7 +308,7 @@ onUnmounted(stopAutoplay)
           <section class="carousel" v-if="carousels.topRated.length">
             <h2>Aclamados pela Crítica</h2>
             <div class="scroll">
-              <article v-for="movie in carousels.topRated" :key="'top-' + movie.id" class="card">
+              <article v-for="movie in carousels.topRated" :key="'top-' + movie.id" class="card" @click="goToMovie(movie.id)">
                 <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy"/>
                 <div v-else class="no-img">🎬</div>
                 <div class="info">
@@ -314,12 +326,12 @@ onUnmounted(stopAutoplay)
           <section class="carousel" v-if="carousels.recent.length">
             <h2>Vencedores Recentes</h2>
             <div class="scroll">
-              <article v-for="movie in carousels.recent" :key="'recent-' + movie.id" class="card">
-                <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy"/>
+              <article v-for="movie in carousels.recent" :key="'recent-' + movie.id" class="card" @click="goToMovie(movie.id)">
+                <img v-if="movie.poster_path" :src="imageBase + movie.poster_path"  :alt="movie.title" loading="lazy"/>
                 <div v-else class="no-img">🎬</div>
                 <div class="info">
                   <h3>{{ movie.title }}</h3>
-                  <div class="meta">
+                  <div  class="meta">
                     <span>⭐ {{ movie.vote_average?.toFixed(1) }}</span>
                   </div>
                   <span class="year">Oscar {{ movie.oscarYear }}</span>
@@ -332,7 +344,7 @@ onUnmounted(stopAutoplay)
           <section class="carousel" v-if="carousels.animation.length">
             <h2>Melhores Animações</h2>
             <div class="scroll">
-              <article v-for="movie in carousels.animation" :key="'anim-' + movie.id" class="card">
+              <article v-for="movie in carousels.animation" :key="'anim-' + movie.id" class="card" @click="goToMovie(movie.id)">
                 <img v-if="movie.poster_path" :src="imageBase + movie.poster_path" :alt="movie.title" loading="lazy"/>
                 <div v-else class="no-img">🎨</div>
                 <div class="info">
@@ -350,7 +362,7 @@ onUnmounted(stopAutoplay)
           <section class="carousel persons" v-if="carousels.directors.length">
             <h2>Melhores Diretores</h2>
             <div class="scroll">
-              <article v-for="person in carousels.directors" :key="'dir-' + person.id" class="person-card">
+              <article v-for="person in carousels.directors" :key="'dir-' + person.id" class="person-card" @click="goToPerson(person.id)">
                 <img v-if="person.profile_path" :src="imageBase + person.profile_path" :alt="person.oscarData.name" loading="lazy"/>
                 <div v-else class="no-img">🎥</div>
                 <div class="info">
@@ -366,7 +378,7 @@ onUnmounted(stopAutoplay)
           <section class="carousel persons" v-if="carousels.actors.length">
             <h2>Melhores Atores</h2>
             <div class="scroll">
-              <article v-for="person in carousels.actors" :key="'act-' + person.id" class="person-card">
+              <article v-for="person in carousels.actors" :key="'act-' + person.id" class="person-card" @click="goToPerson(person.id)">
                 <img v-if="person.profile_path" :src="imageBase + person.profile_path" :alt="person.oscarData.name" loading="lazy"/>
                 <div v-else class="no-img">🎭</div>
                 <div class="info">

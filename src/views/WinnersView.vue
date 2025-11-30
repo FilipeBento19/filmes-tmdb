@@ -1,25 +1,43 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useOscar } from '@/composables/useOscar'
+
+const router = useRouter()
+
+// Adicione esses métodos
+const goToMovie = (movieId) => {
+  router.push({ name: 'movie', params: { id: movieId } })
+}
+
+const goToPerson = (personId) => {
+  router.push({ name: 'person', params: { id: personId } })
+}
+
 
 const imageBase = 'https://image.tmdb.org/t/p/w500'
 
 const { fetchYearWinners, oscarWinners } = useOscar()
 
-// Estados
-const movieWinners = ref([])   // Filmes vencedores
-const personWinners = ref([])  // Pessoas vencedoras
+const movieWinners = ref([])
+const personWinners = ref([])
+const technicalWinners = ref([])
 const selectedYear = ref(2024)
 const loading = ref(false)
 const ceremony = ref(null)
 
-// Anos disponíveis
 const years = ref(Object.keys(oscarWinners).map(Number).sort((a, b) => b - a))
+
+// Combinar filmes e prêmios técnicos
+const allMovieWinners = computed(() => {
+  return [...movieWinners.value, ...technicalWinners.value]
+})
 
 const loadWinners = async () => {
   loading.value = true
   movieWinners.value = []
   personWinners.value = []
+  technicalWinners.value = []
 
   try {
     const yearData = await fetchYearWinners(selectedYear.value)
@@ -27,6 +45,7 @@ const loadWinners = async () => {
     if (yearData) {
       movieWinners.value = yearData.movieWinners || []
       personWinners.value = yearData.personWinners || []
+      technicalWinners.value = yearData.technicalWinners || []
       ceremony.value = yearData.ceremony
     }
   } catch (error) {
@@ -113,23 +132,20 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- ===================== -->
-      <!-- SEÇÃO: FILMES VENCEDORES -->
-      <!-- ===================== -->
-      <section class="winners-section" v-if="movieWinners.length > 0">
+      <!-- SEÇÃO: FILMES PREMIADOS (inclui técnicos) -->
+      <section class="winners-section" v-if="allMovieWinners.length > 0">
         <div class="container">
           <div class="section-title">
-            <span class="title-icon">🎬</span>
             <h3>Filmes Premiados</h3>
+            <span class="count">{{ allMovieWinners.length }}</span>
           </div>
 
           <div class="movies-grid">
             <article
-              v-for="(item, index) in movieWinners"
+              v-for="item in allMovieWinners"
               :key="`movie-${item.movieDetails.id}-${item.category}`"
               class="movie-card"
             >
-              <!-- Badge de destaque para Melhor Filme -->
               <div class="featured-badge" v-if="item.category === 'bestPicture'">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -153,7 +169,7 @@ onMounted(() => {
                 </div>
 
                 <div class="poster-overlay">
-                  <button class="view-details-btn">
+                  <button class="view-details-btn" @click="goToMovie(item.movieDetails.id)">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M8 5v14l11-7z"/>
                     </svg>
@@ -166,6 +182,15 @@ onMounted(() => {
                 <div class="category-badge">{{ item.categoryName }}</div>
                 <h4 class="movie-title">{{ item.movieDetails.title }}</h4>
                 
+                <!-- Nome do profissional (para prêmios técnicos) -->
+                <p class="professional-name" v-if="item.professionalName">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  {{ item.professionalName }}
+                </p>
+
                 <div class="movie-meta">
                   <span class="rating" v-if="item.movieDetails.vote_average">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -187,14 +212,12 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- ===================== -->
       <!-- SEÇÃO: PESSOAS VENCEDORAS -->
-      <!-- ===================== -->
       <section class="winners-section persons-section" v-if="personWinners.length > 0">
         <div class="container">
           <div class="section-title">
-            <span class="title-icon">🎭</span>
             <h3>Artistas Premiados</h3>
+            <span class="count">{{ personWinners.length }}</span>
           </div>
 
           <div class="persons-grid">
@@ -218,9 +241,8 @@ onMounted(() => {
                 </div>
               </div>
 
-              <div class="person-content">
+              <div class="person-content" @click="goToPerson(item.personDetails.id)"> 
                 <div class="category-badge person-category">{{ item.categoryName }}</div>
-                
                 <h4 class="person-name">{{ item.winner.name }}</h4>
                 
                 <p class="movie-reference">
@@ -229,27 +251,20 @@ onMounted(() => {
                     <line x1="7" y1="2" x2="7" y2="22"/>
                     <line x1="17" y1="2" x2="17" y2="22"/>
                     <line x1="2" y1="12" x2="22" y2="12"/>
-                    <line x1="2" y1="7" x2="7" y2="7"/>
-                    <line x1="2" y1="17" x2="7" y2="17"/>
-                    <line x1="17" y1="17" x2="22" y2="17"/>
-                    <line x1="17" y1="7" x2="22" y2="7"/>
                   </svg>
                   {{ item.movieTitle }}
                 </p>
 
-                <!-- Info adicional da pessoa -->
                 <div class="person-info" v-if="item.personDetails">
                   <span v-if="item.personDetails.birthday" class="info-item">
-                    📅 {{ new Date(item.personDetails.birthday).toLocaleDateString('pt-BR') }}
+                    <img src="/imgs/calendar.png" class="icon" alt=""> {{ new Date(item.personDetails.birthday).toLocaleDateString('pt-BR') }}
                   </span>
                   <span v-if="item.personDetails.place_of_birth" class="info-item">
-                    📍 {{ item.personDetails.place_of_birth.split(',')[0] }}
+                    <img src="/imgs/maps-and-flags.png" class="icon" alt=""> {{ item.personDetails.place_of_birth.split(',')[0] }}
                   </span>
                 </div>
 
-                <div class="oscar-badge">
-                  🏆 Oscar {{ selectedYear }}
-                </div>
+                <div class="oscar-badge">Oscar {{ selectedYear }}</div>
               </div>
             </article>
           </div>
@@ -257,7 +272,7 @@ onMounted(() => {
       </section>
 
       <!-- Sem vencedores -->
-      <div v-if="movieWinners.length === 0 && personWinners.length === 0" class="no-winners">
+      <div v-if="allMovieWinners.length === 0 && personWinners.length === 0" class="no-winners">
         <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="8" r="7"/>
           <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
@@ -294,6 +309,10 @@ onMounted(() => {
   margin-bottom: 2rem;
   display: inline-block;
   filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.4));
+}
+
+.icon {
+  max-width: 14px;
 }
 
 .page-hero h1 {
@@ -461,6 +480,12 @@ onMounted(() => {
   flex: 1;
 }
 
+.section-title .count {
+  color: var(--oscar-text-secondary);
+  font-size: 0.9rem;
+  font-family: 'Montserrat', sans-serif;
+}
+
 /* Movies Grid */
 .movies-grid {
   display: grid;
@@ -585,9 +610,26 @@ onMounted(() => {
 .movie-title {
   font-size: 1.2rem;
   font-weight: 800;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   line-height: 1.3;
   color: #fff;
+}
+
+/* Professional Name (para prêmios técnicos) */
+.professional-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--oscar-gold);
+  font-size: 0.9rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.professional-name svg {
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .movie-meta {

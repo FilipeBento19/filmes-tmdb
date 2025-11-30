@@ -1,7 +1,4 @@
-
-
-
-  export const oscarWinners = {
+export const oscarWinners = {
   2024: {
     year: 2024,
     ceremony: 96,
@@ -10,6 +7,12 @@
       bestPicture: {
         winner: { tmdbId: 872585, title: "Oppenheimer", year: 2023 }
       },
+      bestCinematography: {
+  winner: { tmdbId: 872585, title: "Oppenheimer", cinematographer: "Hoyte van Hoytema" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 872585, title: "Oppenheimer", composer: "Ludwig Göransson" }
+},
       bestDirector: {
         winner: { name: "Christopher Nolan", tmdbId: 525, title: "Oppenheimer" }
       },
@@ -33,6 +36,12 @@
       bestPicture: {
         winner: { tmdbId: 545611, title: "Everything Everywhere All at Once", year: 2022 }
       },
+bestCinematography: {
+  winner: { tmdbId: 49046, title: "All Quiet on the Western Front", cinematographer: "James Friend" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 49046, title: "All Quiet on the Western Front", composer: "Volker Bertelmann (Hauschka)" }
+},
       bestDirector: {
         winner: { name: "Daniel Kwan & Daniel Scheinert", tmdbId: 1383612, title: "Everything Everywhere All at Once" }
       },
@@ -56,6 +65,12 @@
       bestPicture: {
         winner: { tmdbId: 776503, title: "CODA", year: 2021 }
       },
+bestCinematography: {
+  winner: { tmdbId: 438631, title: "Dune", cinematographer: "Greig Fraser" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 438631, title: "Dune", composer: "Hans Zimmer" }
+},
       bestDirector: {
         winner: { name: "Jane Campion", tmdbId: 10757, title: "The Power of the Dog" }
       },
@@ -79,6 +94,12 @@
       bestPicture: {
         winner: { tmdbId: 581734, title: "Nomadland", year: 2020 }
       },
+bestCinematography: {
+  winner: { tmdbId: 614560, title: "Mank", cinematographer: "Erik Messerschmidt" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 508442, title: "Soul", composer: "Trent Reznor, Atticus Ross, Jon Batiste" }
+},
       bestDirector: {
         winner: { name: "Chloé Zhao", tmdbId: 1395183, title: "Nomadland" }
       },
@@ -102,6 +123,14 @@
       bestPicture: {
         winner: { tmdbId: 496243, title: "Parasite", year: 2019 }
       },
+bestCinematography: {
+  winner: { tmdbId: 530915, title: "1917", cinematographer: "Roger Deakins" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 475557, title: "Joker", composer: "Hildur Guðnadóttir" }
+},
+
+
       bestDirector: {
         winner: { name: "Bong Joon-ho", tmdbId: 21684, title: "Parasite" }
       },
@@ -125,6 +154,12 @@
       bestPicture: {
         winner: { tmdbId: 490132, title: "Green Book", year: 2018 }
       },
+bestCinematography: {
+  winner: { tmdbId: 426426, title: "Roma", cinematographer: "Alfonso Cuarón" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 284054, title: "Black Panther", composer: "Ludwig Göransson" }
+},
       bestDirector: {
         winner: { name: "Alfonso Cuarón", tmdbId: 11218, title: "Roma" }
       },
@@ -148,6 +183,14 @@
       bestPicture: {
         winner: { tmdbId: 399055, title: "The Shape of Water", year: 2017 }
       },
+bestCinematography: {
+  winner: { tmdbId: 335984, title: "Blade Runner 2049", cinematographer: "Roger Deakins" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 399055, title: "The Shape of Water", composer: "Alexandre Desplat" }
+},
+
+
       bestDirector: {
         winner: { name: "Guillermo del Toro", tmdbId: 10828, title: "The Shape of Water" }
       },
@@ -171,6 +214,12 @@
       bestPicture: {
         winner: { tmdbId: 376867, title: "Moonlight", year: 2016 }
       },
+bestCinematography: {
+  winner: { tmdbId: 313369, title: "La La Land", cinematographer: "Linus Sandgren" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 313369, title: "La La Land", composer: "Justin Hurwitz" }
+},
       bestDirector: {
         winner: { name: "Damien Chazelle", tmdbId: 136495, title: "La La Land" }
       },
@@ -194,6 +243,12 @@
       bestPicture: {
         winner: { tmdbId: 314365, title: "Spotlight", year: 2015 }
       },
+bestCinematography: {
+  winner: { tmdbId: 281957, title: "The Revenant", cinematographer: "Emmanuel Lubezki" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 273248, title: "The Hateful Eight", composer: "Ennio Morricone" }
+},
       bestDirector: {
         winner: { name: "Alejandro G. Iñárritu", tmdbId: 223, title: "The Revenant" }
       },
@@ -217,6 +272,12 @@
       bestPicture: {
         winner: { tmdbId: 194662, title: "Birdman", year: 2014 }
       },
+bestCinematography: {
+  winner: { tmdbId: 194662, title: "Birdman", cinematographer: "Emmanuel Lubezki" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 120467, title: "The Grand Budapest Hotel", composer: "Alexandre Desplat" }
+},
       bestDirector: {
         winner: { name: "Alejandro G. Iñárritu", tmdbId: 223, title: "Birdman" }
       },
@@ -240,6 +301,14 @@
       bestPicture: {
         winner: { tmdbId: 76203, title: "12 Years a Slave", year: 2013 }
       },
+bestCinematography: {
+  winner: { tmdbId: 49047, title: "Gravity", cinematographer: "Emmanuel Lubezki" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 49047, title: "Gravity", composer: "Steven Price" }
+},
+
+
       bestDirector: {
         winner: { name: "Alfonso Cuarón", tmdbId: 49047, title: "Gravity" }
       },
@@ -263,6 +332,13 @@
       bestPicture: {
         winner: { tmdbId: 68734, title: "Argo", year: 2012 }
       },
+bestCinematography: {
+  winner: { tmdbId: 87827, title: "Life of Pi", cinematographer: "Claudio Miranda" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 87827, title: "Life of Pi", composer: "Mychael Danna" }
+},
+
       bestDirector: {
         winner: { name: "Ang Lee", tmdbId: 1614, title: "Life of Pi" }
       },
@@ -286,6 +362,12 @@
       bestPicture: {
         winner: { tmdbId: 74643, title: "The Artist", year: 2011 }
       },
+bestCinematography: {
+  winner: { tmdbId: 44826, title: "Hugo", cinematographer: "Robert Richardson" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 74643, title: "The Artist", composer: "Ludovic Bource" }
+},
       bestDirector: {
         winner: { name: "Michel Hazanavicius", tmdbId: 67717, title: "The Artist" }
       },
@@ -309,6 +391,12 @@
       bestPicture: {
         winner: { tmdbId: 45269, title: "The King's Speech", year: 2010 }
       },
+bestCinematography: {
+  winner: { tmdbId: 27205, title: "Inception", cinematographer: "Wally Pfister" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 37799, title: "The Social Network", composer: "Trent Reznor & Atticus Ross" }
+},
       bestDirector: {
         winner: { name: "Tom Hooper", tmdbId: 70500, title: "The King's Speech" }
       },
@@ -332,6 +420,12 @@
       bestPicture: {
         winner: { tmdbId: 12162, title: "The Hurt Locker", year: 2009 }
       },
+bestCinematography: {
+  winner: { tmdbId: 19995, title: "Avatar", cinematographer: "Mauro Fiore" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 14160, title: "Up", composer: "Michael Giacchino" }
+},
       bestDirector: {
         winner: { name: "Kathryn Bigelow", tmdbId: 14392, title: "The Hurt Locker" }
       },
@@ -355,6 +449,12 @@
       bestPicture: {
         winner: { tmdbId: 12405, title: "Slumdog Millionaire", year: 2008 }
       },
+bestCinematography: {
+  winner: { tmdbId: 12405, title: "Slumdog Millionaire", cinematographer: "Anthony Dod Mantle" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 12405, title: "Slumdog Millionaire", composer: "A. R. Rahman" }
+},
       bestDirector: {
         winner: { name: "Danny Boyle", tmdbId: 2034, title: "Slumdog Millionaire" }
       },
@@ -378,6 +478,13 @@
       bestPicture: {
         winner: { tmdbId: 6977, title: "No Country for Old Men", year: 2007 }
       },
+bestCinematography: {
+  winner: { tmdbId: 7345, title: "There Will Be Blood", cinematographer: "Robert Elswit" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 4347, title: "Atonement", composer: "Dario Marianelli" }
+},
+
       bestDirector: {
         winner: { name: "Joel Coen", tmdbId: 1223, title: "No Country for Old Men" }
       },
@@ -401,6 +508,12 @@
       bestPicture: {
         winner: { tmdbId: 1422, title: "The Departed", year: 2006 }
       },
+bestCinematography: {
+  winner: { tmdbId: 1417, title: "Pan's Labyrinth", cinematographer: "Guillermo Navarro" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 1164, title: "Babel", composer: "Gustavo Santaolalla" }
+},
       bestDirector: {
         winner: { name: "Martin Scorsese", tmdbId: 1032, title: "The Departed" }
       },
@@ -424,6 +537,14 @@
       bestPicture: {
         winner: { tmdbId: 1640, title: "Crash", year: 2005 }
       },
+bestCinematography: {
+  winner: { tmdbId: 1904, title: "Memoirs of a Geisha", cinematographer: "Dion Beebe" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 142, title: "Brokeback Mountain", composer: "Gustavo Santaolalla" }
+},
+
+
       bestDirector: {
         winner: { name: "Ang Lee", tmdbId: 1614, title: "Brokeback Mountain" }
       },
@@ -447,6 +568,12 @@
       bestPicture: {
         winner: { tmdbId: 70, title: "Million Dollar Baby", year: 2004 }
       },
+bestCinematography: {
+  winner: { tmdbId: 2567, title: "The Aviator", cinematographer: "Robert Richardson" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 866, title: "Finding Neverland", composer: "Jan A. P. Kaczmarek" }
+},
       bestDirector: {
         winner: { name: "Clint Eastwood", tmdbId: 190, title: "Million Dollar Baby" }
       },
@@ -470,6 +597,14 @@
       bestPicture: {
         winner: { tmdbId: 122, title: "The Lord of the Rings: The Return of the King", year: 2003 }
       },
+bestCinematography: {
+  winner: { tmdbId: 8619, title: "Master and Commander", cinematographer: "Russell Boyd" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 122, title: "The Lord of the Rings: The Return of the King", composer: "Howard Shore" }
+},
+
+
       bestDirector: {
         winner: { name: "Peter Jackson", tmdbId: 108, title: "The Lord of the Rings: The Return of the King" }
       },
@@ -493,6 +628,12 @@
       bestPicture: {
         winner: { tmdbId: 1574, title: "Chicago", year: 2002 }
       },
+bestCinematography: {
+  winner: { tmdbId: 4147, title: "Road to Perdition", cinematographer: "Conrad L. Hall" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 1360, title: "Frida", composer: "Elliot Goldenthal" }
+},
       bestDirector: {
         winner: { name: "Roman Polanski", tmdbId: 3556, title: "The Pianist" }
       },
@@ -514,8 +655,15 @@
     date: "2002-03-24",
     categories: {
       bestPicture: {
-        winner: { tmdbId: 0, title: "A Beautiful Mind", year: 2001 }
+        winner: { tmdbId: 453, title: "A Beautiful Mind", year: 2001 }
       },
+bestCinematography: {
+  winner: { tmdbId: 120, title: "The Lord of the Rings: The Fellowship of the Ring", cinematographer: "Andrew Lesnie" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 120, title: "The Lord of the Rings: The Fellowship of the Ring", composer: "Howard Shore" }
+},
+
       bestDirector: {
         winner: { name: "Ron Howard", tmdbId: 453, title: "A Beautiful Mind" }
       },
@@ -539,6 +687,14 @@
       bestPicture: {
         winner: { tmdbId: 98, title: "Gladiator", year: 2000 }
       },
+bestCinematography: {
+  winner: { tmdbId: 146, title: "Crouching Tiger, Hidden Dragon", cinematographer: "Peter Pau" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 146, title: "Crouching Tiger, Hidden Dragon", composer: "Tan Dun" }
+},
+
+
       bestDirector: {
         winner: { name: "Steven Soderbergh", tmdbId: 1884, title: "Traffic" }
       },
@@ -549,7 +705,7 @@
         winner: { name: "Julia Roberts", tmdbId: 1204, title: "Erin Brockovich" }
       },
       bestAnimatedFeature: {
-        winner: { tmdbId: 0, title: "—", year: 0 }
+        winner: { tmdbId: 7443, title: "Chicken Run", year: 2000 }
       }
     }
   },
@@ -562,6 +718,12 @@
       bestPicture: {
         winner: { tmdbId: 14, title: "American Beauty", year: 1999 }
       },
+bestCinematography: {
+  winner: { tmdbId: 14, title: "American Beauty", cinematographer: "Conrad L. Hall" }
+},
+bestOriginalScore: {
+  winner: { tmdbId: 14283, title: "The Red Violin", composer: "John Corigliano" }
+},
       bestDirector: {
         winner: { name: "Sam Mendes", tmdbId: 39, title: "American Beauty" }
       },
@@ -573,153 +735,12 @@
       },
 
       bestAnimatedFeature: {
-        winner: { tmdbId: 0, title: "—", year: 0 }
+        winner: { tmdbId: 10386, title: "The Iron Giant", year: 1999 }
       }
     }
   },
 
-
-
-
-  1999: {
-    year: 1999,
-    ceremony: 71,
-    date: "1999-03-21",
-    categories: {
-      bestPicture: {
-        winner: { tmdbId: 1934, title: "Shakespeare in Love", year: 1998 }
-      },
-      bestDirector: {
-        winner: { name: "Steven Spielberg", tmdbId: 488, title: "Saving Private Ryan" }
-      },
-      bestActor: {
-        winner: { name: "Roberto Benigni", tmdbId: 4818, title: "Life Is Beautiful" }
-      },
-      bestActress: {
-        winner: { name: "Gwyneth Paltrow", tmdbId: 12052, title: "Shakespeare in Love" }
-      },
-      bestAnimatedFeature: {
-        winner: { tmdbId: 0, title: "—", year: 0 }
-      }
-    }
-  },
-
-  1998: {
-    year: 1998,
-    ceremony: 70,
-    date: "1998-03-23",
-    categories: {
-      bestPicture: {
-        winner: { tmdbId: 0, title: "Titanic", year: 1997 }
-      },
-      bestDirector: {
-        winner: { name: "James Cameron", tmdbId: 0, title: "Titanic" }
-      },
-      bestActor: {
-        winner: { name: "Jack Nicholson", tmdbId: 0, title: "As Good as It Gets" }
-      },
-      bestActress: {
-        winner: { name: "Helen Hunt", tmdbId: 0, title: "As Good as It Gets" }
-      },
-      bestAnimatedFeature: {
-        winner: { tmdbId: 0, title: "—", year: 0 }
-      }
-    }
-  },
-
-  1997: {
-    year: 1997,
-    ceremony: 69,
-    date: "1997-03-24",
-    categories: {
-      bestPicture: {
-        winner: { tmdbId: 0, title: "The English Patient", year: 1996 }
-      },
-      bestDirector: {
-        winner: { name: "Anthony Minghella", tmdbId: 0, title: "The English Patient" }
-      },
-      bestActor: {
-        winner: { name: "Geoffrey Rush", tmdbId: 0, title: "Shine" }
-      },
-      bestActress: {
-        winner: { name: "Frances McDormand", tmdbId: 0, title: "Fargo" }
-      },
-      bestAnimatedFeature: {
-        winner: { tmdbId: 0, title: "—", year: 0 }
-      }
-    }
-  },
-
-  1996: {
-    year: 1996,
-    ceremony: 68,
-    date: "1996-03-25",
-    categories: {
-      bestPicture: {
-        winner: { tmdbId: 0, title: "Braveheart", year: 1995 }
-      },
-      bestDirector: {
-        winner: { name: "Mel Gibson", tmdbId: 0, title: "Braveheart" }
-      },
-      bestActor: {
-        winner: { name: "Nicolas Cage", tmdbId: 0, title: "Leaving Las Vegas" }
-      },
-      bestActress: {
-        winner: { name: "Susan Sarandon", tmdbId: 0, title: "Dead Man Walking" }
-      },
-      bestAnimatedFeature: {
-        winner: { tmdbId: 0, title: "—", year: 0 }
-      }
-    }
-  },
-
-  1995: {
-    year: 1995,
-    ceremony: 67,
-    date: "1995-03-27",
-    categories: {
-      bestPicture: {
-        winner: { tmdbId: 0, title: "Forrest Gump", year: 1994 }
-      },
-      bestDirector: {
-        winner: { name: "Robert Zemeckis", tmdbId: 0, title: "Forrest Gump" }
-      },
-      bestActor: {
-        winner: { name: "Tom Hanks", tmdbId: 0, title: "Forrest Gump" }
-      },
-      bestActress: {
-        winner: { name: "Jessica Lange", tmdbId: 0, title: "Blue Sky" }
-      },
-      bestAnimatedFeature: {
-        winner: { tmdbId: 0, title: "—", year: 0 }
-      }
-    }
-  },
-
-  1994: {
-    year: 1994,
-    ceremony: 66,
-    date: "1994-03-21",
-    categories: {
-      bestPicture: {
-        winner: { tmdbId: 0, title: "Schindler's List", year: 1993 }
-      },
-      bestDirector: {
-        winner: { name: "Steven Spielberg", tmdbId: 0, title: "Schindler's List" }
-      },
-      bestActor: {
-        winner: { name: "Tom Hanks", tmdbId: 0, title: "Philadelphia" }
-      },
-      bestActress: {
-        winner: { name: "Holly Hunter", tmdbId: 0, title: "The Piano" }
-      },
-      bestAnimatedFeature: {
-        winner: { tmdbId: 0, title: "—", year: 0 }
-      }
-    }
-  }
 };
-
 
 // Adicione isso no final do arquivo oscarWinners.js
 export const getAllBestPictureWinners = () => {

@@ -23,11 +23,10 @@ const loadDecadeTimeline = async () => {
   try {
     const { start, end } = selectedDecade.value
 
-    // Buscar todos os anos da década
     const years = Object.keys(oscarWinners)
       .map(Number)
       .filter(year => year >= start && year <= end)
-      .sort((a, b) => b - a) // Mais recentes primeiro
+      .sort((a, b) => b - a)
 
     const timelineItems = []
 
@@ -44,7 +43,9 @@ const loadDecadeTimeline = async () => {
         director: null,
         actor: null,
         actress: null,
-        animation: null
+        animation: null,
+        cinematography: null,
+        originalScore: null
       }
 
       // Buscar Melhor Filme
@@ -106,6 +107,32 @@ const loadDecadeTimeline = async () => {
           item.animation = {
             ...movieDetails,
             oscarData: animationWinner
+          }
+        }
+      }
+
+      // Buscar Melhor Cinematografia
+      const cinematographyWinner = yearData.categories.bestCinematography?.winner
+      if (cinematographyWinner?.tmdbId && cinematographyWinner.tmdbId !== 0) {
+        const movieDetails = await fetchMovieDetails(cinematographyWinner.tmdbId)
+        if (movieDetails) {
+          item.cinematography = {
+            ...movieDetails,
+            oscarData: cinematographyWinner,
+            professionalName: cinematographyWinner.cinematographer
+          }
+        }
+      }
+
+      // Buscar Melhor Trilha Sonora
+      const scoreWinner = yearData.categories.bestOriginalScore?.winner
+      if (scoreWinner?.tmdbId && scoreWinner.tmdbId !== 0) {
+        const movieDetails = await fetchMovieDetails(scoreWinner.tmdbId)
+        if (movieDetails) {
+          item.originalScore = {
+            ...movieDetails,
+            oscarData: scoreWinner,
+            professionalName: scoreWinner.composer
           }
         }
       }
@@ -175,7 +202,7 @@ onMounted(() => {
             @click="selectDecade(decade)"
             :class="['decade-card', { active: selectedDecade.id === decade.id }]"
           >
-            <div class="decade-icon">📅</div>
+            <div><img class="decade-icon" src="/imgs/calendar.png" alt=""></div>
             <h3>{{ decade.name }}</h3>
             <p>{{ decade.years }}</p>
           </button>
@@ -274,10 +301,10 @@ onMounted(() => {
                       {{ item.bestPicture.vote_average.toFixed(1) }}
                     </span>
                     <span class="stat" v-if="item.bestPicture.release_date">
-                      📅 {{ new Date(item.bestPicture.release_date).getFullYear() }}
+                      <img class="decade-icon2" src="/imgs/calendar.png" alt=""> {{ new Date(item.bestPicture.release_date).getFullYear() }}
                     </span>
                     <span class="stat" v-if="item.bestPicture.runtime">
-                      ⏱️ {{ item.bestPicture.runtime }}min
+                      <img class="decade-icon2" src="/imgs/time.png" alt=""> {{ item.bestPicture.runtime }}min
                     </span>
                   </div>
 
@@ -361,7 +388,7 @@ onMounted(() => {
                 </div>
 
                 <!-- Animation -->
-                <div class="winner-chip animation-chip" v-if="item.animation">
+                <div class="winner-chip" v-if="item.animation">
                   <div class="chip-poster">
                     <img
                       v-if="item.animation.poster_path"
@@ -377,6 +404,48 @@ onMounted(() => {
                     <span class="chip-name">{{ item.animation.title }}</span>
                     <span class="chip-rating" v-if="item.animation.vote_average">
                       ⭐ {{ item.animation.vote_average.toFixed(1) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Cinematography -->
+                <div class="winner-chip technical-chip" v-if="item.cinematography">
+                  <div class="chip-poster">
+                    <img
+                      v-if="item.cinematography.poster_path"
+                      :src="imageBase + item.cinematography.poster_path"
+                      :alt="item.cinematography.title"
+                    />
+                    <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    </svg>
+                  </div>
+                  <div class="chip-info">
+                    <span class="chip-label">Melhor Cinematografia</span>
+                    <span class="chip-name">{{ item.cinematography.title }}</span>
+                    <span class="chip-professional" v-if="item.cinematography.professionalName">
+                      📷 {{ item.cinematography.professionalName }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Original Score -->
+                <div class="winner-chip technical-chip" v-if="item.originalScore">
+                  <div class="chip-poster">
+                    <img
+                      v-if="item.originalScore.poster_path"
+                      :src="imageBase + item.originalScore.poster_path"
+                      :alt="item.originalScore.title"
+                    />
+                    <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    </svg>
+                  </div>
+                  <div class="chip-info">
+                    <span class="chip-label">Melhor Trilha Sonora</span>
+                    <span class="chip-name">{{ item.originalScore.title }}</span>
+                    <span class="chip-professional" v-if="item.originalScore.professionalName">
+                      🎵 {{ item.originalScore.professionalName }}
                     </span>
                   </div>
                 </div>
@@ -477,6 +546,11 @@ onMounted(() => {
 .decade-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
+  max-width: 50px;
+}
+
+.decade-icon2 {
+  max-width: 20px;
 }
 
 .decade-card h3 {
@@ -788,7 +862,7 @@ onMounted(() => {
 /* Secondary Winners */
 .secondary-winners {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1rem;
 }
 
@@ -807,6 +881,10 @@ onMounted(() => {
   border-color: var(--oscar-gold);
   transform: translateY(-3px);
   box-shadow: 0 5px 20px rgba(212, 175, 55, 0.2);
+}
+
+.technical-chip {
+  background: rgba(212, 175, 55, 0.05);
 }
 
 .chip-avatar {
@@ -887,14 +965,20 @@ onMounted(() => {
   text-overflow: ellipsis;
 }
 
-.animation-chip {
-  grid-column: span 2;
+.chip-professional {
+  font-size: 0.8rem;
+  color: var(--oscar-gold);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .animation-chip {
-    grid-column: span 1;
+  .secondary-winners {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 
@@ -912,7 +996,7 @@ onMounted(() => {
   }
 
   .decades-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
   }
 
@@ -962,10 +1046,6 @@ onMounted(() => {
 
   .secondary-winners {
     grid-template-columns: 1fr;
-  }
-
-  .animation-chip {
-    grid-column: span 1;
   }
 }
 </style>

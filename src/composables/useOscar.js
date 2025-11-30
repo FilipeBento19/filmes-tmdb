@@ -4,9 +4,10 @@ import { ref } from 'vue'
 import api from '@/plugins/axios'
 import { oscarWinners } from '@/data/oscarWinners'
 
-// Definir quais categorias são de PESSOA vs FILME
+// Definir tipos de categorias
 const PERSON_CATEGORIES = ['bestDirector', 'bestActor', 'bestActress', 'bestSupportingActor', 'bestSupportingActress']
 const MOVIE_CATEGORIES = ['bestPicture', 'bestAnimatedFeature', 'bestInternationalFilm', 'bestDocumentary']
+const TECHNICAL_CATEGORIES = ['bestCinematography', 'bestOriginalScore'] // NOVO: categorias técnicas (filme + pessoa)
 
 const getWinnersByCategory = (category) => {
   return Object.values(oscarWinners)
@@ -40,17 +41,20 @@ export function useOscar() {
   const loading = ref(false)
   const error = ref(null)
 
-  // Verificar se categoria é de pessoa
+  // Verificar tipo de categoria
   const isPersonCategory = (category) => {
     return PERSON_CATEGORIES.includes(category)
   }
 
-  // Verificar se categoria é de filme
   const isMovieCategory = (category) => {
     return MOVIE_CATEGORIES.includes(category)
   }
 
-  // Filtro de segurança para evitar conteúdo adulto
+  const isTechnicalCategory = (category) => {
+    return TECHNICAL_CATEGORIES.includes(category)
+  }
+
+  // Filtro de segurança
   const isValidMovie = (movie) => {
     if (!movie) return false
     if (movie.adult === true) return false
@@ -76,7 +80,7 @@ export function useOscar() {
     }
   }
 
-  // 🆕 Buscar detalhes de uma PESSOA do TMDB
+  // Buscar detalhes de uma PESSOA do TMDB
   const fetchPersonDetails = async (personId) => {
     try {
       const response = await api.get(`person/${personId}?language=pt-BR&append_to_response=images,movie_credits`)
@@ -134,7 +138,7 @@ export function useOscar() {
     }).filter(Boolean)
   }
 
-  // 🆕 Buscar vencedores de um ano - ATUALIZADO para separar filmes e pessoas
+  // 🆕 Buscar vencedores de um ano - ATUALIZADO para categorias técnicas
   const fetchYearWinners = async (year) => {
     const yearData = getWinnersByYear(year)
     
@@ -142,20 +146,15 @@ export function useOscar() {
 
     const movieWinners = []  // Categorias de filme
     const personWinners = [] // Categorias de pessoa
+    const technicalWinners = [] // NOVO: categorias técnicas
 
-    // Processar cada categoria
     for (const [category, data] of Object.entries(yearData.categories)) {
       if (!data.winner) continue
 
       if (isPersonCategory(category)) {
-        // É categoria de PESSOA - buscar detalhes da pessoa
+        // Categoria de PESSOA
         if (data.winner.tmdbId) {
           const personDetails = await fetchPersonDetails(data.winner.tmdbId)
-          
-          // Também buscar detalhes do filme relacionado
-          let movieDetails = null
-          // Tentar encontrar o filme pelo título na filmografia da pessoa
-          // ou buscar pelo ID se disponível
           
           if (personDetails) {
             personWinners.push({
@@ -163,21 +162,27 @@ export function useOscar() {
               categoryName: getCategoryName(category),
               winner: data.winner,
               personDetails,
-              movieTitle: data.winner.title // Filme pelo qual ganhou
+              movieTitle: data.winner.title
             })
           }
-        } else {
-          // Sem tmdbId, criar dados básicos
-          personWinners.push({
-            category,
-            categoryName: getCategoryName(category),
-            winner: data.winner,
-            personDetails: null,
-            movieTitle: data.winner.title
-          })
+        }
+      } else if (isTechnicalCategory(category)) {
+        // NOVO: Categoria TÉCNICA (filme + pessoa)
+        if (data.winner.tmdbId) {
+          const movieDetails = await fetchMovieDetails(data.winner.tmdbId)
+          
+          if (movieDetails && isValidMovie(movieDetails)) {
+            technicalWinners.push({
+              category,
+              categoryName: getCategoryName(category),
+              winner: data.winner,
+              movieDetails,
+              professionalName: data.winner.cinematographer || data.winner.composer || null
+            })
+          }
         }
       } else {
-        // É categoria de FILME
+        // Categoria de FILME
         if (data.winner.tmdbId) {
           const movieDetails = await fetchMovieDetails(data.winner.tmdbId)
           
@@ -198,11 +203,12 @@ export function useOscar() {
       ceremony: yearData.ceremony,
       date: yearData.date,
       movieWinners,
-      personWinners
+      personWinners,
+      technicalWinners // NOVO
     }
   }
 
-  // Helper para nome das categorias
+  // Helper para nome das categorias - ATUALIZADO
   const getCategoryName = (key) => {
     const categoryMap = {
       bestPicture: 'Melhor Filme',
@@ -215,7 +221,9 @@ export function useOscar() {
       bestInternationalFilm: 'Melhor Filme Internacional',
       bestDocumentary: 'Melhor Documentário',
       bestOriginalScreenplay: 'Melhor Roteiro Original',
-      bestAdaptedScreenplay: 'Melhor Roteiro Adaptado'
+      bestAdaptedScreenplay: 'Melhor Roteiro Adaptado',
+      bestCinematography: 'Melhor Cinematografia', // NOVO
+      bestOriginalScore: 'Melhor Trilha Sonora Original' // NOVO
     }
     return categoryMap[key] || 'Vencedor'
   }
@@ -261,8 +269,10 @@ export function useOscar() {
     getCategoryName,
     isPersonCategory,
     isMovieCategory,
+    isTechnicalCategory,
     bestPictureTmdbIds,
     PERSON_CATEGORIES,
-    MOVIE_CATEGORIES
+    MOVIE_CATEGORIES,
+    TECHNICAL_CATEGORIES
   }
 }

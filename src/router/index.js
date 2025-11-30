@@ -1,48 +1,42 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
-    meta: {
-      title: 'AwardWatch'
+const routes =  [
+    {
+      path: '/',
+      name: 'home',
+      component: () => import('../views/HomeView.vue')
+    },
+    {
+      path: '/winners',
+      name: 'winners',
+      component: () => import('../views/WinnersView.vue')
+    },
+    {
+      path: '/categories',
+      name: 'categories',
+      component: () => import('../views/CategoriesView.vue')
+    },
+    {
+      path: '/timeline',
+      name: 'timeline',
+      component: () => import('../views/TimeLine.vue')
+    },
+    {
+      path: '/movie/:id',
+      name: 'movie',
+      component: () => import('../views/MovieDetailView.vue')
+    },
+    {
+      path: '/person/:id',
+      name: 'person',
+      component: () => import('../views/PersonDetailView.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFound.vue')
     }
-  },
-  {
-    path: '/winners',
-    name: 'Winners',
-    component: () => import('@/views/WinnersView.vue'),
-    meta: {
-      title: 'AwardWatch'
-    }
-  },
-  {
-    path: '/categories',
-    name: 'Categories',
-    component: () => import('@/views/CategoriesView.vue'),
-    meta: {
-      title: 'AwardWatch'
-    }
-  },
-  {
-    path: '/timeline',
-    name: 'Timeline',
-    component: () => import('@/views/TimeLine.vue'),
-    meta: {
-      title: 'AwardWatch'
-    }
-  },
-  // Rota 404
-  {
-    path: '/:pathMatch(.*)*',
-    name: 'NotFound',
-    component: () => import('@/views/NotFound.vue'),
-    meta: {
-      title: '404 - Página não encontrada'
-    }
-  }
-]
+  ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
