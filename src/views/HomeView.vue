@@ -228,8 +228,7 @@ onUnmounted(stopAutoplay)
           </div>
           <p class="desc">{{ currentMovie.overview?.substring(0, 200) }}...</p>
           <div class="buttons">
-            <button class="btn primary">▶ Ver Detalhes</button>
-            <button class="btn secondary">+ Minha Lista</button>
+            <button class="btn primary" @click="goToMovie(currentMovie.id)">▶ Ver Detalhes</button>
           </div>
         </div>
 

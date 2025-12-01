@@ -195,18 +195,24 @@ onMounted(() => {
     <!-- Decade Selector -->
     <section class="decades-section">
       <div class="container">
-        <div class="decades-grid">
-          <button
-            v-for="decade in decades"
-            :key="decade.id"
-            @click="selectDecade(decade)"
-            :class="['decade-card', { active: selectedDecade.id === decade.id }]"
-          >
-            <div><img class="decade-icon" src="/imgs/calendar.png" alt=""></div>
-            <h3>{{ decade.name }}</h3>
-            <p>{{ decade.years }}</p>
-          </button>
-        </div>
+       <div class="decades-grid">
+        <button
+          v-for="decade in decades"
+          :key="decade.id"
+          @click="selectDecade(decade)"
+          :class="['decade-card', { active: selectedDecade.id === decade.id }]"
+        >
+          <div>
+            <img 
+              class="decade-icon" 
+              :src="selectedDecade.id === decade.id ? '/imgs/calendar_1.png' : '/imgs/calendar.png'" 
+              :alt="decade.name"
+            >
+          </div>
+          <h3>{{ decade.name }}</h3>
+          <p>{{ decade.years }}</p>
+        </button>
+      </div>
 
         <!-- Stats -->
         <div class="decade-stats" v-if="!loading && timelineData.length > 0">
