@@ -55,7 +55,7 @@ const router = createRouter({
 
 // Guard para atualizar título da página
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title || 'Oscarizados - O Cinema dos Vencedores'
+  document.title = to.meta.title || 'Award Watch'
   next()
 })
 
